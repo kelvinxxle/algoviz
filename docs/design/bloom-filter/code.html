@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AlgoViz | Bloom Filter Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&amp;family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7dd3fc;
+        }
+
+        .bit-cell {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bit-active {
+            background-color: #5adcb3; /* Aquamarine */
+            box-shadow: 0 0 12px rgba(90, 220, 179, 0.4);
+            border-color: #79f9ce;
+        }
+        
+        .hash-line {
+            stroke: #7dd3fc;
+            stroke-dasharray: 4;
+            animation: dash 20s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -1000; }
+        }
+
+        .node-pulse {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-container": "#555453",
+                        "secondary-fixed": "#79f9ce",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-fixed-dim": "#c9c6c5",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-fixed-dim": "#7bd1fa",
+                        "tertiary": "#e7e4e3",
+                        "on-surface": "#e5e2e1",
+                        "surface-container": "#201f1f",
+                        "surface-bright": "#393939",
+                        "outline": "#899298",
+                        "inverse-primary": "#006686",
+                        "secondary-fixed-dim": "#5adcb3",
+                        "surface-dim": "#131313",
+                        "primary-container": "#7dd3fc",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "on-secondary-fixed": "#002117",
+                        "outline-variant": "#3f484e",
+                        "on-secondary-fixed-variant": "#00513d",
+                        "on-error": "#690005",
+                        "surface-variant": "#353534",
+                        "tertiary-container": "#cbc8c7",
+                        "error-container": "#93000a",
+                        "surface-tint": "#7bd1fa",
+                        "on-tertiary": "#313030",
+                        "on-background": "#e5e2e1",
+                        "tertiary-fixed": "#e5e2e1",
+                        "background": "#050505", /* Overridden to Deep Black as per prompt */
+                        "on-tertiary-fixed-variant": "#474646",
+                        "secondary": "#5adcb3",
+                        "surface": "#121212",
+                        "on-surface-variant": "#bec8ce",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#001e2b",
+                        "on-secondary": "#003829",
+                        "on-primary-container": "#005b78",
+                        "on-primary": "#003547",
+                        "inverse-on-surface": "#313030",
+                        "surface-container-highest": "#353534",
+                        "secondary-container": "#00a782",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-container": "#003326",
+                        "primary": "#c5eaff",
+                        "primary-fixed": "#c0e8ff",
+                        "on-primary-fixed-variant": "#004d66"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "sm": "8px",
+                        "panel-margin": "12px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "gutter": "1px",
+                        "xs": "4px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Geist"],
+                        "display": ["Geist"],
+                        "code-lg": ["JetBrains Mono"],
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-md": ["Geist"],
+                        "headline-lg": ["Geist"],
+                        "body-md": ["Geist"],
+                        "code-md": ["JetBrains Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#050505] text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed h-screen w-64 left-0 top-0 flex flex-col py-md bg-surface-dim border-r border-outline-variant z-50">
+<div class="px-md mb-xl">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary tracking-tighter">AlgoViz</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">v2.4.0-stable</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dynamic Programming Active -->
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-sm" data-icon="sort">sort</span>
+<span class="font-label-caps text-label-caps">Sorting</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-sm" data-icon="hub">hub</span>
+<span class="font-label-caps text-label-caps">Graphs</span>
+</a>
+<a class="flex items-center px-md py-sm text-primary bg-surface-container-highest border-l-2 border-primary transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-sm" data-icon="functions">functions</span>
+<span class="font-label-caps text-label-caps">Dynamic Programming</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-sm" data-icon="layers">layers</span>
+<span class="font-label-caps text-label-caps">System Design</span>
+</a>
+<a class="flex items-center px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-sm" data-icon="account_tree">account_tree</span>
+<span class="font-label-caps text-label-caps">Tree Structures</span>
+</a>
+</nav>
+<div class="mt-auto px-md">
+<button class="w-full py-sm px-md mb-lg bg-primary-container text-on-primary-container font-label-caps text-label-caps flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                New Simulation
+            </button>
+<div class="space-y-1">
+<a class="flex items-center py-xs text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mr-sm text-[20px]" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+<a class="flex items-center py-xs text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined mr-sm text-[20px]" data-icon="menu_book">menu_book</span>
+<span class="font-label-caps text-label-caps">Documentation</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex flex-col h-screen">
+<!-- Top Navigation Bar -->
+<header class="flex justify-between items-center h-12 px-lg bg-surface border-b border-outline-variant">
+<div class="flex items-center space-x-lg">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Bloom Filter Visualization</span>
+<nav class="hidden md:flex space-x-md">
+<a class="text-primary border-b-2 border-primary pb-1 font-label-caps text-label-caps" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps" href="#">Benchmarks</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-caps text-label-caps" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center space-x-md">
+<div class="relative group">
+<input class="bg-[#050505] border border-[#262626] text-code-md font-code-md px-md py-1 w-48 focus:w-64 focus:border-primary-container transition-all outline-none text-on-surface" placeholder="Search parameters..." type="text"/>
+<span class="absolute right-2 top-1.5 material-symbols-outlined text-outline-variant text-[18px]" data-icon="search">search</span>
+</div>
+<div class="flex items-center space-x-sm">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="terminal">terminal</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="bolt">bolt</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors" data-icon="help_outline">help_outline</span>
+</div>
+</div>
+</header>
+<!-- Workspace Layout -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Left: Visualization Area -->
+<section class="flex-1 p-lg flex flex-col space-y-lg relative overflow-y-auto">
+<!-- Hash Logic Diagram -->
+<div class="flex items-center justify-between bg-surface border border-outline-variant p-md">
+<div class="flex flex-col space-y-sm">
+<span class="font-label-caps text-label-caps text-primary-container">Input Stream</span>
+<div class="flex items-center space-x-sm">
+<input class="bg-[#050505] border border-outline-variant text-code-md font-code-md px-md py-2 w-48 focus:border-primary-container outline-none" id="element-input" type="text" value="user_id_492"/>
+<button class="bg-primary-container text-on-primary-container px-lg py-2 font-label-caps text-label-caps hover:brightness-110" onclick="simulateHash()">INSERT</button>
+</div>
+</div>
+<div class="flex space-x-md">
+<!-- Hash Modules -->
+<div class="flex flex-col items-center p-sm border border-outline-variant bg-[#1a1a1a] min-w-[80px]">
+<span class="font-label-caps text-[10px] text-on-surface-variant mb-1">HASH H1</span>
+<span class="font-code-md text-secondary" id="h1-val">0x3F</span>
+</div>
+<div class="flex flex-col items-center p-sm border border-outline-variant bg-[#1a1a1a] min-w-[80px]">
+<span class="font-label-caps text-[10px] text-on-surface-variant mb-1">HASH H2</span>
+<span class="font-code-md text-secondary" id="h2-val">0xA2</span>
+</div>
+<div class="flex flex-col items-center p-sm border border-outline-variant bg-[#1a1a1a] min-w-[80px]">
+<span class="font-label-caps text-[10px] text-on-surface-variant mb-1">HASH H3</span>
+<span class="font-code-md text-secondary" id="h3-val">0x14</span>
+</div>
+</div>
+</div>
+<!-- Bit Array Visualization -->
+<div class="flex-1 bg-surface border border-outline-variant p-lg relative overflow-hidden flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-label-caps text-label-caps text-primary">Main Bit-Array Cluster (m=256)</h3>
+<div class="flex space-x-sm">
+<span class="flex items-center font-label-caps text-[10px] text-on-surface-variant">
+<span class="w-2 h-2 bg-secondary mr-2"></span> Active
+                            </span>
+<span class="flex items-center font-label-caps text-[10px] text-on-surface-variant">
+<span class="w-2 h-2 bg-[#1c1b1b] border border-outline-variant mr-2"></span> Idle
+                            </span>
+</div>
+</div>
+<!-- Bit Grid -->
+<div class="grid grid-cols-16 md:grid-cols-32 gap-1 flex-1 content-start" id="bit-grid">
+<!-- Generated by JS -->
+</div>
+<!-- Decorative Hash Connection Lines (SVG Overlay) -->
+<svg class="absolute inset-0 pointer-events-none w-full h-full opacity-20">
+<path class="hash-line fill-none stroke-primary" d="M 0 100 Q 400 200 800 100"></path>
+</svg>
+</div>
+<!-- Live Log -->
+<div class="h-48 bg-[#050505] border border-outline-variant p-md overflow-hidden flex flex-col">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-caps text-label-caps text-outline-variant">SYSTEM LOG</span>
+<span class="text-[10px] font-code-md text-secondary-fixed">LIVE_STREAM_CONNECTED</span>
+</div>
+<div class="flex-1 font-code-md text-code-md text-on-surface-variant overflow-y-auto space-y-1" id="log-content">
+<p>&gt; Initializing Bloom Filter [m=256, k=3]</p>
+<p>&gt; Seeded murmur3, cityhash, and xxhash.</p>
+<p class="text-secondary">&gt; Ready for input.</p>
+</div>
+</div>
+</section>
+<!-- Right: Insights & Metrics Panel -->
+<aside class="w-80 bg-surface border-l border-outline-variant flex flex-col">
+<!-- Static Metrics -->
+<div class="p-md border-b border-outline-variant">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-md">PROBABILITY METRICS</span>
+<div class="space-y-md">
+<div>
+<div class="flex justify-between font-label-caps text-[11px] mb-1">
+<span>False Positive Prob.</span>
+<span class="text-secondary" id="metric-fp">0.0001%</span>
+</div>
+<div class="h-1 bg-surface-container-high w-full">
+<div class="h-full bg-secondary w-[2%]" id="bar-fp"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-caps text-[11px] mb-1">
+<span>Fill Ratio (n/m)</span>
+<span class="text-primary" id="metric-fill">12.5%</span>
+</div>
+<div class="h-1 bg-surface-container-high w-full">
+<div class="h-full bg-primary w-[12.5%]" id="bar-fill"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Detailed Component Stats -->
+<div class="p-md space-y-md">
+<span class="font-label-caps text-label-caps text-on-surface-variant block">COMPONENT INSIGHTS</span>
+<div class="p-sm bg-surface-container-low border border-outline-variant">
+<div class="flex items-center space-x-sm mb-sm">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="memory">memory</span>
+<span class="font-label-caps text-[11px]">Storage Efficiency</span>
+</div>
+<p class="font-body-md text-on-surface-variant text-[13px]">
+                            Occupying <span class="text-on-surface font-semibold">32 Bytes</span>. Bloom filters offer O(k) insertion and search time complexity.
+                        </p>
+</div>
+<div class="p-sm bg-surface-container-low border border-outline-variant">
+<div class="flex items-center space-x-sm mb-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="psychology">psychology</span>
+<span class="font-label-caps text-[11px]">Optimal K Selection</span>
+</div>
+<p class="font-body-md text-on-surface-variant text-[13px]">
+                            With <span class="text-on-surface font-semibold">k=3</span>, we minimize hash collisions relative to the bit array size <span class="text-on-surface font-semibold">m=256</span>.
+                        </p>
+</div>
+<!-- Micro Animation Asset -->
+<div class="relative h-32 border border-outline-variant overflow-hidden mt-md">
+
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<span class="font-label-caps text-[10px] text-primary bg-black/50 px-2 py-1">REAL-TIME HASH ENTROPY</span>
+</div>
+</div>
+</div>
+<!-- Footer Action -->
+<div class="mt-auto p-md border-t border-outline-variant bg-surface-container-lowest">
+<button class="w-full py-sm border border-outline-variant text-on-surface font-label-caps text-label-caps hover:bg-surface-container-high transition-colors">
+                        EXPORT SNAPSHOT
+                    </button>
+</div>
+</aside>
+</div>
+</main>
+<script>
+        const grid = document.getElementById('bit-grid');
+        const totalBits = 256;
+        const bits = [];
+
+        // Initialize Bit Grid
+        for (let i = 0; i < totalBits; i++) {
+            const bit = document.createElement('div');
+            bit.className = 'bit-cell aspect-square border border-outline-variant bg-surface-container-lowest flex items-center justify-center text-[8px] font-code-md text-outline-variant opacity-40';
+            bit.innerText = '0';
+            grid.appendChild(bit);
+            bits.push(bit);
+        }
+
+        function simulateHash() {
+            const inputVal = document.getElementById('element-input').value;
+            if (!inputVal) return;
+
+            // Simple deterministic "hashes" for visualization
+            const h1 = Math.abs(inputVal.split('').reduce((a,b) => (a<<5)-a+b.charCodeAt(0), 0)) % totalBits;
+            const h2 = Math.abs(inputVal.split('').reverse().reduce((a,b) => (a<<5)-a+b.charCodeAt(0), 0)) % totalBits;
+            const h3 = (h1 + h2 * 7) % totalBits;
+
+            // Update UI Hash Values
+            document.getElementById('h1-val').innerText = '0x' + h1.toString(16).toUpperCase();
+            document.getElementById('h2-val').innerText = '0x' + h2.toString(16).toUpperCase();
+            document.getElementById('h3-val').innerText = '0x' + h3.toString(16).toUpperCase();
+
+            // Set Bits
+            [h1, h2, h3].forEach(idx => {
+                const b = bits[idx];
+                b.classList.add('bit-active', 'node-pulse');
+                b.classList.remove('opacity-40');
+                b.innerText = '1';
+                b.style.color = '#000';
+            });
+
+            // Log Update
+            const log = document.getElementById('log-content');
+            const p = document.createElement('p');
+            p.innerHTML = `<span class="text-primary-container">></span> Inserted <span class="text-on-surface">"${inputVal}"</span> indices [${h1}, ${h2}, ${h3}]`;
+            log.prepend(p);
+
+            // Update Metrics
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const activeCount = document.querySelectorAll('.bit-active').length;
+            const fillRatio = (activeCount / totalBits * 100).toFixed(1);
+            
+            // False positive approximation: (1 - e^(-kn/m))^k
+            // For simplicity in demo, we'll use a scaled logic
+            const fpProb = (Math.pow(1 - Math.exp(-3 * activeCount / totalBits), 3) * 100).toFixed(4);
+
+            document.getElementById('metric-fill').innerText = fillRatio + '%';
+            document.getElementById('bar-fill').style.width = fillRatio + '%';
+            
+            document.getElementById('metric-fp').innerText = fpProb + '%';
+            document.getElementById('bar-fp').style.width = Math.min(100, fpProb * 50) + '%';
+        }
+
+        // Add some random initial noise
+        setTimeout(() => {
+            const initial = ["payload_x", "request_alpha", "kernel_v1"];
+            initial.forEach(item => {
+                document.getElementById('element-input').value = item;
+                simulateHash();
+            });
+            document.getElementById('element-input').value = "user_id_492";
+        }, 500);
+    </script>
+</body></html>

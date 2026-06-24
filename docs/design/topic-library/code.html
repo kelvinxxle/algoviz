@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AlgoViz - Topic Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #050505;
+            color: #e5e2e1;
+            font-family: 'Geist', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7dd3fc;
+        }
+        /* Grid Borders */
+        .grid-container {
+            display: grid;
+            gap: 1px;
+            background-color: #1A1A1A;
+            border: 1px solid #1A1A1A;
+        }
+        .grid-item {
+            background-color: #050505;
+        }
+        /* Industrial Hover Effect */
+        .topic-card {
+            transition: all 0.15s ease-in-out;
+        }
+        .topic-card:hover {
+            background-color: #121212;
+            outline: 1px solid #7dd3fc;
+            z-index: 10;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#2a2a2a",
+                      "on-tertiary-container": "#555453",
+                      "secondary-fixed": "#79f9ce",
+                      "inverse-surface": "#e5e2e1",
+                      "tertiary-fixed-dim": "#c9c6c5",
+                      "surface-container-low": "#1c1b1b",
+                      "primary-fixed-dim": "#7bd1fa",
+                      "tertiary": "#e7e4e3",
+                      "on-surface": "#e5e2e1",
+                      "surface-container": "#201f1f",
+                      "surface-bright": "#393939",
+                      "outline": "#899298",
+                      "inverse-primary": "#006686",
+                      "secondary-fixed-dim": "#5adcb3",
+                      "surface-dim": "#131313",
+                      "primary-container": "#7dd3fc",
+                      "on-tertiary-fixed": "#1c1b1b",
+                      "on-secondary-fixed": "#002117",
+                      "outline-variant": "#3f484e",
+                      "on-secondary-fixed-variant": "#00513d",
+                      "on-error": "#690005",
+                      "surface-variant": "#353534",
+                      "tertiary-container": "#cbc8c7",
+                      "error-container": "#93000a",
+                      "surface-tint": "#7bd1fa",
+                      "on-tertiary": "#313030",
+                      "on-background": "#e5e2e1",
+                      "tertiary-fixed": "#e5e2e1",
+                      "background": "#131313",
+                      "on-tertiary-fixed-variant": "#474646",
+                      "secondary": "#5adcb3",
+                      "surface": "#131313",
+                      "on-surface-variant": "#bec8ce",
+                      "error": "#ffb4ab",
+                      "on-primary-fixed": "#001e2b",
+                      "on-secondary": "#003829",
+                      "on-primary-container": "#005b78",
+                      "on-primary": "#003547",
+                      "inverse-on-surface": "#313030",
+                      "surface-container-highest": "#353534",
+                      "secondary-container": "#00a782",
+                      "surface-container-lowest": "#0e0e0e",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-container": "#003326",
+                      "primary": "#c5eaff",
+                      "primary-fixed": "#c0e8ff",
+                      "on-primary-fixed-variant": "#004d66"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0px",
+                      "lg": "0px",
+                      "xl": "0px",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "sm": "8px",
+                      "panel-margin": "12px",
+                      "md": "16px",
+                      "lg": "24px",
+                      "gutter": "1px",
+                      "xs": "4px",
+                      "xl": "32px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Geist"],
+                      "display": ["Geist"],
+                      "code-lg": ["JetBrains Mono"],
+                      "label-caps": ["JetBrains Mono"],
+                      "headline-md": ["Geist"],
+                      "headline-lg": ["Geist"],
+                      "body-md": ["Geist"],
+                      "code-md": ["JetBrains Mono"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "display": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "code-lg": ["14px", {"lineHeight": "1.7", "fontWeight": "400"}],
+                      "label-caps": ["11px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                      "headline-lg": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                      "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "code-md": ["13px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="flex overflow-hidden h-screen">
+<!-- Predicted Component: SideNavBar -->
+<aside class="flex flex-col h-full py-md bg-surface-dim dark:bg-surface-dim border-r border-outline-variant dark:border-outline-variant w-64 shrink-0 overflow-y-auto">
+<div class="px-md mb-xl">
+<span class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary tracking-tighter">AlgoViz</span>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">v2.4.0-stable</p>
+</div>
+<nav class="flex-1 space-y-xs px-sm">
+<button class="w-full text-left font-label-caps text-label-caps py-sm px-md transition-colors duration-150 ease-in-out text-primary dark:text-primary bg-surface-container-highest dark:bg-surface-container-highest border-l-2 border-primary flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="grid_view">grid_view</span>
+<span>DASHBOARD</span>
+</button>
+<div class="pt-md pb-xs px-md">
+<span class="font-label-caps text-label-caps text-on-surface-variant opacity-50">ALGORITHM CLASSES</span>
+</div>
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="sort">sort</span>
+<span>Sorting</span>
+</button>
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="hub">hub</span>
+<span>Graphs</span>
+</button>
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="functions">functions</span>
+<span>Dynamic Programming</span>
+</button>
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="layers">layers</span>
+<span>System Design</span>
+</button>
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="account_tree">account_tree</span>
+<span>Tree Structures</span>
+</button>
+</nav>
+<div class="mt-auto pt-xl px-sm space-y-xs">
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span>Settings</span>
+</button>
+<button class="w-full text-left font-body-md text-body-md py-sm px-md transition-colors duration-150 ease-in-out text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high hover:text-on-surface flex items-center gap-md">
+<span class="material-symbols-outlined text-[20px]" data-icon="menu_book">menu_book</span>
+<span>Documentation</span>
+</button>
+<div class="px-sm pt-md">
+<button class="w-full bg-primary-container text-on-primary-container py-sm font-label-caps text-label-caps font-bold hover:brightness-110 transition-all">
+                    NEW SIMULATION
+                </button>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-background overflow-hidden relative">
+<!-- Animated Background Element -->
+
+<!-- Predicted Component: TopNavBar -->
+<header class="flex justify-between items-center h-12 px-lg bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant z-20">
+<div class="flex items-center gap-xl h-full">
+<span class="font-headline-md text-headline-md font-bold text-on-surface dark:text-on-surface">Topic Library</span>
+<nav class="hidden md:flex gap-md h-full">
+<a class="flex items-center text-primary dark:text-primary border-b-2 border-primary px-sm font-label-caps text-label-caps" href="#">DASHBOARD</a>
+<a class="flex items-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary px-sm font-label-caps text-label-caps transition-colors" href="#">BENCHMARKS</a>
+<a class="flex items-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary px-sm font-label-caps text-label-caps transition-colors" href="#">HISTORY</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative group">
+<div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="search">search</span>
+</div>
+<input class="bg-[#050505] border border-[#262626] text-on-surface font-code-md text-code-md px-md pl-10 py-1 focus:outline-none focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Jump to algorithm... (⌘K)" type="text"/>
+</div>
+<div class="flex gap-xs">
+<button class="p-1 hover:text-primary transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="terminal">terminal</span>
+</button>
+<button class="p-1 hover:text-primary transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="bolt">bolt</span>
+</button>
+<button class="p-1 hover:text-primary transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="flex-1 overflow-y-auto p-lg relative z-10">
+<!-- Filter Bar -->
+<div class="flex items-center justify-between mb-lg bg-surface-container p-sm border border-outline-variant">
+<div class="flex gap-sm">
+<button class="px-md py-1 bg-primary text-on-primary-container font-label-caps text-label-caps font-bold">ALL TOPICS</button>
+<button class="px-md py-1 border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-high transition-colors">CANONICAL</button>
+<button class="px-md py-1 border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-high transition-colors">SYSTEMS</button>
+<button class="px-md py-1 border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container-high transition-colors">HEURISTIC</button>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-label-caps text-label-caps text-outline">SORT BY: COMPLEXITY</span>
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="filter_list">filter_list</span>
+</div>
+</div>
+<!-- Bento Grid Library -->
+<div class="grid-container grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+<!-- Topic Card: Dijkstra -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">CANONICAL</span>
+<span class="material-symbols-outlined text-primary" data-icon="share_location">share_location</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Dijkstra's Pathfinding</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Greedy graph search for shortest paths.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="h-8 flex items-end gap-0.5">
+<div class="w-1 bg-primary h-2"></div>
+<div class="w-1 bg-primary h-4"></div>
+<div class="w-1 bg-primary h-3"></div>
+<div class="w-1 bg-primary h-6"></div>
+<div class="w-1 bg-primary h-5"></div>
+<div class="w-1 bg-primary h-7"></div>
+</div>
+<span class="font-code-md text-code-md text-primary">O(E + V log V)</span>
+</div>
+</div>
+<!-- Topic Card: Bloom Filters -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">SYSTEMS</span>
+<span class="material-symbols-outlined text-primary" data-icon="blur_on">blur_on</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Bloom Filters</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Probabilistic data structure for membership.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="h-8 flex items-center justify-center w-full bg-surface-container-high/30">
+<div class="w-3/4 h-0.5 bg-secondary/50 relative">
+<div class="absolute -top-1 left-1/4 w-2 h-2 rounded-full bg-secondary"></div>
+<div class="absolute -top-1 left-3/4 w-2 h-2 rounded-full bg-secondary"></div>
+</div>
+</div>
+<span class="font-code-md text-code-md text-secondary">O(k)</span>
+</div>
+</div>
+<!-- Topic Card: LRU Cache -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">SYSTEMS</span>
+<span class="material-symbols-outlined text-primary" data-icon="history">history</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">LRU Cache</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Least Recently Used eviction strategy.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="h-8 flex gap-1">
+<div class="w-4 h-full bg-primary/20 border border-primary/40"></div>
+<div class="w-4 h-full bg-primary border border-primary"></div>
+<div class="w-4 h-full bg-primary/20 border border-primary/40"></div>
+</div>
+<span class="font-code-md text-code-md text-primary">O(1)</span>
+</div>
+</div>
+<!-- Topic Card: Raft Consensus -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">SYSTEMS</span>
+<span class="material-symbols-outlined text-primary" data-icon="groups">groups</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Raft Consensus</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Distributed consensus via leader election.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="h-8 flex items-center justify-center space-x-1">
+<span class="w-1.5 h-1.5 bg-primary"></span>
+<span class="w-3 h-3 bg-primary animate-pulse"></span>
+<span class="w-1.5 h-1.5 bg-primary"></span>
+</div>
+<span class="font-code-md text-code-md text-primary">REPLICATION</span>
+</div>
+</div>
+<!-- Topic Card: Red-Black Trees -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">CANONICAL</span>
+<span class="material-symbols-outlined text-primary" data-icon="account_tree">account_tree</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Red-Black Trees</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Self-balancing binary search trees.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="h-8 flex flex-col justify-end">
+<div class="w-12 h-0.5 bg-outline-variant mb-1"></div>
+<div class="w-12 h-1 bg-error"></div>
+</div>
+<span class="font-code-md text-code-md text-on-surface-variant">O(log n)</span>
+</div>
+</div>
+<!-- Topic Card: QuickSort -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">CANONICAL</span>
+<span class="material-symbols-outlined text-primary" data-icon="swap_horiz">swap_horiz</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Quicksort</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Divide-and-conquer sorting algorithm.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="flex items-center gap-1">
+<div class="w-2 h-4 bg-primary/40"></div>
+<div class="w-2 h-7 bg-primary"></div>
+<div class="w-2 h-2 bg-primary/60"></div>
+</div>
+<span class="font-code-md text-code-md text-primary">O(n log n)</span>
+</div>
+</div>
+<!-- Topic Card: Consistent Hashing -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">SYSTEMS</span>
+<span class="material-symbols-outlined text-primary" data-icon="published_with_changes">published_with_changes</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Consistent Hashing</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Scalable request distribution for DHTs.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="w-8 h-8 rounded-full border border-dashed border-primary flex items-center justify-center">
+<div class="w-4 h-4 rounded-full bg-primary/20"></div>
+</div>
+<span class="font-code-md text-code-md text-secondary">K/n</span>
+</div>
+</div>
+<!-- Topic Card: Dynamic Programming -->
+<div class="topic-card grid-item flex flex-col p-md h-48 border-outline-variant border">
+<div class="flex justify-between items-start mb-md">
+<span class="bg-secondary/10 text-secondary border border-secondary px-2 py-0.5 font-label-caps text-[10px] tracking-widest">CANONICAL</span>
+<span class="material-symbols-outlined text-primary" data-icon="rebase_edit">rebase_edit</span>
+</div>
+<div class="mt-auto">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Knapsack Problem</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Optimization using overlapping subproblems.</p>
+</div>
+<div class="mt-md flex items-end justify-between">
+<div class="h-8 flex items-end gap-1">
+<div class="w-2 h-2 bg-secondary"></div>
+<div class="w-2 h-4 bg-secondary"></div>
+<div class="w-2 h-6 bg-secondary"></div>
+</div>
+<span class="font-code-md text-code-md text-secondary">O(nW)</span>
+</div>
+</div>
+</div>
+<!-- System Stats / Activity (Optional Sidebar/Bottom Panel feel) -->
+<div class="mt-lg grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="bg-surface-container border border-outline-variant p-md">
+<span class="font-label-caps text-label-caps text-outline block mb-sm">ACTIVE NODES</span>
+<div class="flex items-end gap-md">
+<span class="font-display text-display text-primary">1,248</span>
+<span class="font-code-md text-code-md text-secondary mb-1 flex items-center">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            +12%
+                        </span>
+</div>
+</div>
+<div class="bg-surface-container border border-outline-variant p-md">
+<span class="font-label-caps text-label-caps text-outline block mb-sm">SIMULATION THROUPUT</span>
+<div class="flex items-end gap-md">
+<span class="font-display text-display text-on-surface">42.5k</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-1">OP/S</span>
+</div>
+</div>
+<div class="bg-surface-container border border-outline-variant p-md">
+<span class="font-label-caps text-label-caps text-outline block mb-sm">SYSTEM STABILITY</span>
+<div class="flex items-center gap-md">
+<div class="flex-1 h-2 bg-[#050505] border border-[#262626]">
+<div class="h-full bg-secondary w-[99.8%]"></div>
+</div>
+<span class="font-code-md text-code-md text-secondary">99.8%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Overlay -->
+<footer class="h-8 border-t border-outline-variant bg-surface flex items-center justify-between px-md shrink-0 relative z-20">
+<div class="flex items-center gap-md">
+<span class="flex items-center gap-1 text-secondary font-label-caps text-[10px]">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                    SYSTEM ONLINE
+                </span>
+<span class="text-on-surface-variant font-code-md text-[10px] opacity-60">ID: algo-viz-main-core-01</span>
+</div>
+<div class="flex items-center gap-md font-code-md text-[10px] text-on-surface-variant">
+<span>MEM: 4.2GB / 16GB</span>
+<span>CPU: 12%</span>
+<span class="text-primary cursor-pointer hover:underline">RESOURCES</span>
+</div>
+</footer>
+</main>
+<script>
+        // Micro-interaction for Jump Search
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('input').focus();
+            }
+        });
+
+        // Simulating loading state for cards
+        const cards = document.querySelectorAll('.topic-card');
+        cards.forEach((card, i) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, i * 50);
+        });
+    </script>
+</body></html>
