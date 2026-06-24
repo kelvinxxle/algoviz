@@ -10,6 +10,7 @@ import { bloomTopic } from "@/topics/bloom-filters/topic";
 import { consistentHashingTopic } from "@/topics/consistent-hashing/topic";
 import { lruCacheTopic } from "@/topics/lru-cache/topic";
 import { bTreesTopic } from "@/topics/b-trees/topic";
+import { rateLimitingTopic } from "@/topics/rate-limiting/topic";
 
 /**
  * Props every topic renderer receives. The shared shell passes the resolved
@@ -100,6 +101,12 @@ const BTreeRenderer = dynamic(() =>
   import("@/components/b-trees/BTreeRenderer").then((m) => m.BTreeRenderer)
 );
 
+const RateLimitRenderer = dynamic(() =>
+  import("@/components/rate-limiting/RateLimitRenderer").then(
+    (m) => m.RateLimitRenderer
+  )
+);
+
 /**
  * Slug to topic module. Adding a future topic is: author run() + bundle + a
  * renderer, then register one entry here. No shared engine, shell, or page edit.
@@ -123,6 +130,7 @@ const registry: Record<string, TopicModule> = {
   ),
   [lruCacheTopic.slug]: defineTopic(lruCacheTopic, LruRenderer),
   [bTreesTopic.slug]: defineTopic(bTreesTopic, BTreeRenderer),
+  [rateLimitingTopic.slug]: defineTopic(rateLimitingTopic, RateLimitRenderer),
 };
 
 export function getTopicModule(slug: string): TopicModule | undefined {
