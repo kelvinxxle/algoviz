@@ -89,7 +89,7 @@ export const topics: Topic[] = [
     slug: "b-trees",
     title: "B-Trees",
     flavor: "systems",
-    status: "coming-soon",
+    status: "available",
     blurb: "The structure under every database index and filesystem.",
     complexity: "O(log n)",
     icon: "dataset",
