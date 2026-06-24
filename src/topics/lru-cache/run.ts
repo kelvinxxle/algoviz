@@ -145,7 +145,7 @@ export function run(
           outcome: "hit",
           op: { kind: "get", key: op.key },
           lastValue: value,
-          narration: `Splice ${op.key} to the head: it is now the most-recently-used entry. Two pointer updates, no scan.`,
+          narration: `Splice ${op.key} to the head: it is now the most-recently-used entry. Unlink it and relink at the head, six pointer updates, no scan.`,
           highlights: present([
             [`node:${op.key}`, "candidate"],
             [`map:${op.key}`, "candidate"],

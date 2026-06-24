@@ -88,6 +88,32 @@ describe("LruList intrusive doubly linked list", () => {
     expect(cost8).toBeLessThanOrEqual(8);
   });
 
+  it("resolves keys in a constant number of probes, identical for an 8- and an 800-node cache (no lookup scan)", () => {
+    const build = (n: number): LruList => {
+      const list = new LruList();
+      for (let i = 0; i < n; i += 1) list.insertFront(`k${i}`, i);
+      return list;
+    };
+
+    // The whole get path on the least-recently-used key: presence check,
+    // value read, then promote. Each resolves the key through the hash map,
+    // so the number of probes must not grow with the cache size. A scan added
+    // to any lookup would examine more entries in the 800-node cache and break
+    // this. (pointerOps only counts writes, so it cannot catch a read scan.)
+    const getPath = (list: LruList): number => {
+      const before = list.probes;
+      list.has("k0");
+      list.valueOf("k0");
+      list.moveToFront("k0");
+      return list.probes - before;
+    };
+
+    const cost8 = getPath(build(8));
+    const cost800 = getPath(build(800));
+    expect(cost800).toBe(cost8);
+    expect(cost8).toBeLessThanOrEqual(3);
+  });
+
   it("does a constant amount of pointer work to evict the tail, independent of size", () => {
     const build = (n: number): LruList => {
       const list = new LruList();

@@ -27,6 +27,14 @@ export class LruList {
   /** Cumulative count of prev/next pointer writes, for the O(1) oracle test. */
   public pointerOps = 0;
 
+  /**
+   * Cumulative count of key-to-node resolutions through the hash map. Each
+   * lookup costs exactly one probe regardless of size; a scan would examine
+   * many entries, so this counter proves the lookup path does no scan (which
+   * `pointerOps`, counting only writes, cannot show).
+   */
+  public probes = 0;
+
   constructor() {
     this.head = { key: "\u0000head", value: 0, prev: null, next: null };
     this.tail = { key: "\u0000tail", value: 0, prev: null, next: null };
@@ -39,11 +47,11 @@ export class LruList {
   }
 
   has(key: string): boolean {
-    return this.map.has(key);
+    return this.locate(key) !== undefined;
   }
 
   valueOf(key: string): number {
-    const node = this.map.get(key);
+    const node = this.locate(key);
     if (node === undefined) {
       throw new Error(`Key "${key}" is not in the cache`);
     }
@@ -57,7 +65,7 @@ export class LruList {
   }
 
   insertFront(key: string, value: number): void {
-    if (this.map.has(key)) {
+    if (this.locate(key) !== undefined) {
       throw new Error(`Key "${key}" is already in the cache`);
     }
     const node: ListNode = { key, value, prev: null, next: null };
@@ -66,7 +74,7 @@ export class LruList {
   }
 
   update(key: string, value: number): void {
-    const node = this.map.get(key);
+    const node = this.locate(key);
     if (node === undefined) {
       throw new Error(`Key "${key}" is not in the cache`);
     }
@@ -74,7 +82,7 @@ export class LruList {
   }
 
   moveToFront(key: string): void {
-    const node = this.map.get(key);
+    const node = this.locate(key);
     if (node === undefined) {
       throw new Error(`Key "${key}" is not in the cache`);
     }
@@ -102,6 +110,11 @@ export class LruList {
       cursor = cursor.next;
     }
     return out;
+  }
+
+  private locate(key: string): ListNode | undefined {
+    this.probes += 1;
+    return this.map.get(key);
   }
 
   private linkFront(node: ListNode): void {

@@ -157,6 +157,33 @@ describe("lru run", () => {
     expect(total).toBeLessThanOrEqual(ops.length * 8);
   });
 
+  it("states the promotion's pointer-update count honestly, matching the counter", () => {
+    const steps = run(PROGRAM);
+    const i = steps.findIndex((s) => s.caption === "Promote A");
+    expect(i).toBeGreaterThan(0);
+    const delta =
+      steps[i].counters.pointerOps - steps[i - 1].counters.pointerOps;
+    // moveToFront is unlink (2 writes) + linkFront (4 writes) = 6, not 2.
+    expect(delta).toBe(6);
+    const narration = steps[i].narration.toLowerCase();
+    expect(narration).toContain("six");
+    expect(narration).not.toContain("two pointer");
+  });
+
+  it("evicts the single prior key when capacity is 1", () => {
+    const program: LruInput = {
+      capacity: 1,
+      ops: [
+        { kind: "put", key: "A", value: 1 },
+        { kind: "put", key: "B", value: 2 },
+      ],
+    };
+    const steps = run(program);
+    const evict = steps.find((s) => s.state.outcome === "evict");
+    expect(evict?.state.evicted).toEqual({ key: "A", value: 1 });
+    expect(order(last(steps).state.order)).toEqual(["B"]);
+  });
+
   it("caps emitted steps at maxSteps", () => {
     const steps = run(PROGRAM, { maxSteps: 4 });
     expect(steps).toHaveLength(4);
