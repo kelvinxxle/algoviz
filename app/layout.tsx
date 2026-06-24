@@ -25,6 +25,12 @@ export default function RootLayout({
       lang="en"
       className={`dark ${GeistSans.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block"
+        />
+      </head>
       <body className="bg-base text-on-surface">{children}</body>
     </html>
   );
