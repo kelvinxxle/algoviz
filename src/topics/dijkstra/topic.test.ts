@@ -26,7 +26,7 @@ describe("dijkstra topic bundle", () => {
   it("provides pseudocode whose length covers every emitted line", () => {
     const steps = dijkstraTopic.run(dijkstraTopic.curatedInput);
     const maxLine = Math.max(
-      ...steps.map((s) => s.line ?? 0).filter((n) => n > 0),
+      ...steps.map((s) => s.line ?? 0).filter((n) => n > 0)
     );
     expect(dijkstraTopic.pseudocode.length).toBeGreaterThanOrEqual(maxLine);
   });

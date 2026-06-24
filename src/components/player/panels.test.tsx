@@ -11,19 +11,24 @@ import type { ParseResult } from "@/engine/contract";
 describe("NarrationPanel", () => {
   it("shows the narration and the 1-based step position", () => {
     render(
-      <NarrationPanel narration="Relaxing edge" caption="Extract B" index={3} total={10} />,
+      <NarrationPanel
+        narration="Relaxing edge"
+        caption="Extract B"
+        index={3}
+        total={10}
+      />
     );
     expect(screen.getByText("Relaxing edge")).toBeInTheDocument();
-    expect(screen.getByTestId("step-position")).toHaveTextContent("STEP 4 / 10");
+    expect(screen.getByTestId("step-position")).toHaveTextContent(
+      "STEP 4 / 10"
+    );
     expect(screen.getByText("Extract B")).toBeInTheDocument();
   });
 });
 
 describe("PseudocodePanel", () => {
   it("marks the active line and renders all lines", () => {
-    render(
-      <PseudocodePanel lines={["a", "b", "c"]} activeLine={2} />,
-    );
+    render(<PseudocodePanel lines={["a", "b", "c"]} activeLine={2} />);
     const active = screen.getByText("b").closest("[data-line]");
     expect(active).toHaveAttribute("data-active", "true");
     const inactive = screen.getByText("a").closest("[data-line]");
@@ -41,7 +46,7 @@ describe("CountersPanel", () => {
           { key: "relaxations", label: "Relaxations", description: "examined" },
         ]}
         complexity={{ time: "O(E log V)", space: "O(V)" }}
-      />,
+      />
     );
     expect(screen.getByTestId("counter-settled")).toHaveTextContent("4");
     expect(screen.getByTestId("counter-relaxations")).toHaveTextContent("10");
@@ -55,14 +60,16 @@ describe("CountersPanel", () => {
         counters={{}}
         defs={[{ key: "updates", label: "Updates", description: "d" }]}
         complexity={{ time: "O(1)", space: "O(1)" }}
-      />,
+      />
     );
     expect(screen.getByTestId("counter-updates")).toHaveTextContent("0");
   });
 });
 
 describe("PlayerControls", () => {
-  function setup(overrides: Partial<Parameters<typeof PlayerControls>[0]> = {}) {
+  function setup(
+    overrides: Partial<Parameters<typeof PlayerControls>[0]> = {}
+  ) {
     const handlers = {
       onToggle: vi.fn(),
       onNext: vi.fn(),
@@ -79,7 +86,7 @@ describe("PlayerControls", () => {
         speed={1}
         {...handlers}
         {...overrides}
-      />,
+      />
     );
     return handlers;
   }
@@ -117,18 +124,15 @@ describe("PlayerControls", () => {
 });
 
 describe("SandboxPanel", () => {
-  const parse =
-    (): ((raw: string) => ParseResult<string[]>) => (raw) =>
-      raw.includes("bad")
-        ? { ok: false, error: "bad input on line 1" }
-        : { ok: true, value: raw.split(" ") };
+  const parse = (): ((raw: string) => ParseResult<string[]>) => (raw) =>
+    raw.includes("bad")
+      ? { ok: false, error: "bad input on line 1" }
+      : { ok: true, value: raw.split(" ") };
 
   it("runs parsed input on success", async () => {
     const user = userEvent.setup();
     const onRun = vi.fn();
-    render(
-      <SandboxPanel defaultValue="A B" parse={parse()} onRun={onRun} />,
-    );
+    render(<SandboxPanel defaultValue="A B" parse={parse()} onRun={onRun} />);
     await user.click(screen.getByRole("button", { name: /run/i }));
     expect(onRun).toHaveBeenCalledWith(["A", "B"]);
     expect(screen.queryByTestId("sandbox-error")).not.toBeInTheDocument();
@@ -137,13 +141,11 @@ describe("SandboxPanel", () => {
   it("shows the parser error and does not run on failure", async () => {
     const user = userEvent.setup();
     const onRun = vi.fn();
-    render(
-      <SandboxPanel defaultValue="bad" parse={parse()} onRun={onRun} />,
-    );
+    render(<SandboxPanel defaultValue="bad" parse={parse()} onRun={onRun} />);
     await user.click(screen.getByRole("button", { name: /run/i }));
     expect(onRun).not.toHaveBeenCalled();
     expect(screen.getByTestId("sandbox-error")).toHaveTextContent(
-      "bad input on line 1",
+      "bad input on line 1"
     );
   });
 });

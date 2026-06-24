@@ -78,7 +78,7 @@ export interface RunOptions {
  */
 export type Run<TInput, TState> = (
   input: TInput,
-  options?: RunOptions,
+  options?: RunOptions
 ) => Step<TState>[];
 
 /** Display metadata for one counter surfaced in the UI. */

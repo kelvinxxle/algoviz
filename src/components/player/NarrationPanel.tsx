@@ -23,7 +23,10 @@ export function NarrationPanel({
     >
       <header className="flex items-center justify-between">
         <span className="flex items-center gap-xs font-label-caps text-label-caps uppercase tracking-widest text-secondary">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-secondary" />
+          <span
+            aria-hidden="true"
+            className="h-2 w-2 rounded-full bg-secondary"
+          />
           {caption ?? "Walkthrough"}
         </span>
         <span

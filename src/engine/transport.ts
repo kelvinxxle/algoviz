@@ -58,7 +58,7 @@ function isSpeed(value: number): value is Speed {
 
 export function transportReducer(
   state: TransportState,
-  action: TransportAction,
+  action: TransportAction
 ): TransportState {
   switch (action.type) {
     case "load":

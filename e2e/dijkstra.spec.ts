@@ -30,7 +30,7 @@ test.describe("Dijkstra workbench", () => {
     await page.getByRole("button", { name: "Play" }).click();
     await expect(page.getByTestId("step-position")).not.toContainText(
       "STEP 1 /",
-      { timeout: 4000 },
+      { timeout: 4000 }
     );
     await page.getByRole("button", { name: "Pause" }).click();
     const halted = await page.getByTestId("step-position").textContent();
@@ -49,7 +49,7 @@ test.describe("Dijkstra workbench", () => {
       .textContent()
       .then((t) => (t ?? "").split("/")[1]?.trim());
     await expect(page.getByTestId("step-position")).toContainText(
-      `STEP ${total} / ${total}`,
+      `STEP ${total} / ${total}`
     );
     await page.getByRole("button", { name: "Reset" }).click();
     await expect(page.getByTestId("step-position")).toContainText("STEP 1 /");

@@ -26,12 +26,12 @@ function buildAdjacency(input: DijkstraInput): Map<string, Adjacent[]> {
   for (const edge of input.edges) {
     if (!ids.has(edge.from) || !ids.has(edge.to)) {
       throw new Error(
-        `Edge ${edge.from}->${edge.to} references an unknown node`,
+        `Edge ${edge.from}->${edge.to} references an unknown node`
       );
     }
     if (edge.weight < 0) {
       throw new Error(
-        `Dijkstra requires non-negative weights; edge ${edge.from}->${edge.to} is ${edge.weight}`,
+        `Dijkstra requires non-negative weights; edge ${edge.from}->${edge.to} is ${edge.weight}`
       );
     }
     adj.get(edge.from)!.push({ to: edge.to, weight: edge.weight });
@@ -55,7 +55,7 @@ function buildAdjacency(input: DijkstraInput): Map<string, Adjacent[]> {
  */
 export function run(
   input: DijkstraInput,
-  options: { readonly maxSteps?: number } = {},
+  options: { readonly maxSteps?: number } = {}
 ): Step<DijkstraState>[] {
   const cap = options.maxSteps ?? Infinity;
   const ids = input.nodes.map((n) => n.id);
@@ -87,7 +87,7 @@ export function run(
       .sort((a, b) => a.dist - b.dist || (a.id < b.id ? -1 : 1));
 
   const buildHighlights = (
-    overrides: ReadonlyArray<readonly [string, HighlightRole]>,
+    overrides: ReadonlyArray<readonly [string, HighlightRole]>
   ): Highlight[] => {
     const map = new Map<string, HighlightRole>();
     for (const id of frontier.keys()) map.set(`node:${id}`, "frontier");
@@ -230,7 +230,7 @@ export function run(
 function reconstructPath(
   previous: Record<string, string | null>,
   source: string,
-  target?: string,
+  target?: string
 ): string[] | null {
   if (!target || !(target in previous)) return null;
   if (target !== source && previous[target] === null) return null;
@@ -248,7 +248,7 @@ function describeOutcome(
   input: DijkstraInput,
   distances: Record<string, number | null>,
   path: string[] | null,
-  show: (d: number | null) => string,
+  show: (d: number | null) => string
 ): string {
   if (input.target) {
     const d = distances[input.target];

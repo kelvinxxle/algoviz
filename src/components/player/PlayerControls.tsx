@@ -71,7 +71,10 @@ export function PlayerControls({
           aria-pressed={playing}
           className="flex h-10 w-10 items-center justify-center bg-primary-container text-on-primary-container transition-all hover:bg-primary"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-[28px]">
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined text-[28px]"
+          >
             {playing ? "pause" : "play_arrow"}
           </span>
         </button>

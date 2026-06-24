@@ -33,7 +33,7 @@ interface SimNode extends SimulationNodeDatum {
 
 function isFullyPositioned(input: DijkstraInput): boolean {
   return input.nodes.every(
-    (n) => typeof n.x === "number" && typeof n.y === "number",
+    (n) => typeof n.x === "number" && typeof n.y === "number"
   );
 }
 
@@ -82,7 +82,7 @@ export function layoutGraph(input: DijkstraInput): PositionedGraph {
       forceLink<SimNode, SimulationLinkDatum<SimNode>>(links)
         .id((d) => d.id)
         .distance(140)
-        .strength(0.6),
+        .strength(0.6)
     )
     .force("charge", forceManyBody().strength(-600))
     .force("center", forceCenter(VIEWBOX.width / 2, VIEWBOX.height / 2))
@@ -115,7 +115,7 @@ function rescale(nodes: readonly SimNode[]): PositionedNode[] {
     value: number,
     min: number,
     span: number,
-    inner: number,
+    inner: number
   ): number => {
     if (span === 0) return PADDING + inner / 2;
     return PADDING + ((value - min) / span) * inner;

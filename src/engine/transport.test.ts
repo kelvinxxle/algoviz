@@ -108,7 +108,7 @@ describe("transportReducer", () => {
   it("reset returns to index 0 paused without losing the count", () => {
     const s = transportReducer(
       { ...load(5), index: 4, playing: true },
-      { type: "reset" },
+      { type: "reset" }
     );
     expect(s).toMatchObject({ stepCount: 5, index: 0, playing: false });
   });

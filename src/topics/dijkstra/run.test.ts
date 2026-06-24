@@ -64,7 +64,7 @@ describe("dijkstra run", () => {
   it("marks a node extracted with current set and pseudocode on extract-min", () => {
     const steps = run(GRAPH);
     const extractA = steps.find(
-      (s) => s.state.current === "A" && s.state.relaxing === null,
+      (s) => s.state.current === "A" && s.state.relaxing === null
     );
     expect(extractA).toBeDefined();
     expect(extractA?.line).toBe(5);
@@ -82,7 +82,7 @@ describe("dijkstra run", () => {
   it("highlights a rejected edge when a relaxation does not improve", () => {
     const steps = run(GRAPH);
     const rejected = steps.some((s) =>
-      s.highlights.some((h) => h.role === "rejected"),
+      s.highlights.some((h) => h.role === "rejected")
     );
     expect(rejected).toBe(true);
   });
@@ -93,7 +93,7 @@ describe("dijkstra run", () => {
     for (let i = 1; i < steps.length; i += 1) {
       for (const k of keys) {
         expect(steps[i].counters[k]).toBeGreaterThanOrEqual(
-          steps[i - 1].counters[k],
+          steps[i - 1].counters[k]
         );
       }
     }

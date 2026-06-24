@@ -29,7 +29,9 @@ export interface PlayerState extends TransportState {
 export type PlayerStore = UseBoundStore<StoreApi<PlayerState>>;
 
 /** The step at the current transport index, or undefined when empty. */
-export function selectCurrentStep(state: PlayerState): Step<unknown> | undefined {
+export function selectCurrentStep(
+  state: PlayerState
+): Step<unknown> | undefined {
   return state.steps[state.index];
 }
 

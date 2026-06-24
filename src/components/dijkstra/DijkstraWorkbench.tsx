@@ -33,13 +33,13 @@ type Tab = "logic" | "metrics";
 export function DijkstraWorkbench() {
   const [store] = useState(createPlayerStore);
   const [graph, setGraph] = useState(() =>
-    layoutGraph(dijkstraTopic.curatedInput),
+    layoutGraph(dijkstraTopic.curatedInput)
   );
   const [tab, setTab] = useState<Tab>("logic");
 
   const initialSteps = useMemo(
     () => dijkstraTopic.run(dijkstraTopic.curatedInput),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -148,7 +148,7 @@ export function DijkstraWorkbench() {
           <div className="border-t border-outline-variant pt-md">
             <SandboxPanel<DijkstraInput>
               defaultValue={dijkstraTopic.serializeInput(
-                dijkstraTopic.curatedInput,
+                dijkstraTopic.curatedInput
               )}
               parse={dijkstraTopic.parseInput}
               onRun={runInput}
@@ -193,7 +193,10 @@ function TabButton({
           : "text-on-surface-variant hover:bg-surface-container-high"
       }`}
     >
-      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+      <span
+        aria-hidden="true"
+        className="material-symbols-outlined text-[16px]"
+      >
         {icon}
       </span>
       {label}

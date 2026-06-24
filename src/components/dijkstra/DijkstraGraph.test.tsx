@@ -37,26 +37,26 @@ const highlights: Highlight[] = [
 describe("DijkstraGraph", () => {
   it("renders a node element per graph node", () => {
     const { container } = render(
-      <DijkstraGraph graph={graph} state={state} highlights={highlights} />,
+      <DijkstraGraph graph={graph} state={state} highlights={highlights} />
     );
     expect(container.querySelectorAll("[data-node]")).toHaveLength(3);
   });
 
   it("applies highlight roles to nodes and edges", () => {
     const { container } = render(
-      <DijkstraGraph graph={graph} state={state} highlights={highlights} />,
+      <DijkstraGraph graph={graph} state={state} highlights={highlights} />
     );
     expect(container.querySelector('[data-node="A"]')).toHaveAttribute(
       "data-role",
-      "active",
+      "active"
     );
     expect(container.querySelector('[data-node="B"]')).toHaveAttribute(
       "data-role",
-      "candidate",
+      "candidate"
     );
     expect(container.querySelector('[data-edge="A-B"]')).toHaveAttribute(
       "data-role",
-      "candidate",
+      "candidate"
     );
   });
 
@@ -66,17 +66,17 @@ describe("DijkstraGraph", () => {
         graph={graph}
         state={state}
         highlights={[{ target: "edge:B-A", role: "path" }]}
-      />,
+      />
     );
     expect(container.querySelector('[data-edge="A-B"]')).toHaveAttribute(
       "data-role",
-      "path",
+      "path"
     );
   });
 
   it("shows distance labels with infinity for unreached nodes", () => {
     const { container } = render(
-      <DijkstraGraph graph={graph} state={state} highlights={highlights} />,
+      <DijkstraGraph graph={graph} state={state} highlights={highlights} />
     );
     const labelA = container.querySelector('[data-dist="A"]');
     const labelC = container.querySelector('[data-dist="C"]');
@@ -86,20 +86,20 @@ describe("DijkstraGraph", () => {
 
   it("renders edge weights", () => {
     const { container } = render(
-      <DijkstraGraph graph={graph} state={state} highlights={highlights} />,
+      <DijkstraGraph graph={graph} state={state} highlights={highlights} />
     );
     expect(container.querySelector('[data-weight="A-B"]')).toHaveTextContent(
-      "4",
+      "4"
     );
   });
 
   it("defaults nodes with no highlight to an unvisited role", () => {
     const { container } = render(
-      <DijkstraGraph graph={graph} state={state} highlights={[]} />,
+      <DijkstraGraph graph={graph} state={state} highlights={[]} />
     );
     expect(container.querySelector('[data-node="C"]')).toHaveAttribute(
       "data-role",
-      "unvisited",
+      "unvisited"
     );
   });
 });

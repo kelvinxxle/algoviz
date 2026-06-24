@@ -34,9 +34,13 @@ function roleMap(highlights: readonly Highlight[]): Map<string, HighlightRole> {
 function edgeRole(
   roles: Map<string, HighlightRole>,
   from: string,
-  to: string,
+  to: string
 ): HighlightRole | "unvisited" {
-  return roles.get(`edge:${from}-${to}`) ?? roles.get(`edge:${to}-${from}`) ?? "unvisited";
+  return (
+    roles.get(`edge:${from}-${to}`) ??
+    roles.get(`edge:${to}-${from}`) ??
+    "unvisited"
+  );
 }
 
 const INFINITY = "\u221e";
