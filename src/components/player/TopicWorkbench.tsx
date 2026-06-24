@@ -1,50 +1,42 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type { Step } from "@/engine/contract";
+import { useState } from "react";
 import { createPlayerStore } from "@/engine/store";
 import { usePlayer } from "@/engine/usePlayer";
+import type { AnyAlgorithmTopic } from "@/engine/contract";
+import type { TopicRenderer } from "@/engine/registry";
 import { CountersPanel } from "@/components/player/CountersPanel";
 import { NarrationPanel } from "@/components/player/NarrationPanel";
 import { PlayerControls } from "@/components/player/PlayerControls";
 import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
-import { DijkstraGraph } from "./DijkstraGraph";
-import { dijkstraTopic } from "@/topics/dijkstra/topic";
-import { layoutGraph } from "@/topics/dijkstra/layout";
-import type { DijkstraInput, DijkstraState } from "@/topics/dijkstra/types";
 
 const SANDBOX_HINT =
-  "One edge per line as: from to weight. Add source: X and target: Y on their own lines. Weights must be non-negative.";
-
-const LEGEND: Array<{ label: string; className: string }> = [
-  { label: "Active", className: "bg-secondary" },
-  { label: "On path", className: "bg-primary" },
-  { label: "Unvisited", className: "bg-outline-variant" },
-];
+  "Edit the input and run it through the same engine that drives the walkthrough.";
 
 type Tab = "logic" | "metrics";
 
 /**
- * The Dijkstra topic workbench. Composes the reusable player store, transport,
- * narration, pseudocode, counters, and sandbox around the Dijkstra SVG renderer.
- * Walkthrough and sandbox run through the same `dijkstraTopic.run` engine.
+ * The shared topic workbench. Holds the player store, transport, and every
+ * panel, and is written entirely against the TState-agnostic parts of a Step
+ * (narration, highlights, counters, line, caption) plus the topic's display
+ * metadata. The only topic-specific piece is the injected `Renderer`, which
+ * re-narrows its own state. Walkthrough and sandbox run through one engine.
  */
-export function DijkstraWorkbench() {
-  const [store] = useState(createPlayerStore);
-  const [graph, setGraph] = useState(() =>
-    layoutGraph(dijkstraTopic.curatedInput)
-  );
+export function TopicWorkbench({
+  topic,
+  Renderer,
+}: {
+  topic: AnyAlgorithmTopic;
+  Renderer: TopicRenderer;
+}) {
+  const [store] = useState(() => {
+    const created = createPlayerStore();
+    created.getState().load(topic.run(topic.curatedInput));
+    return created;
+  });
+  const [input, setInput] = useState<unknown>(topic.curatedInput);
   const [tab, setTab] = useState<Tab>("logic");
-
-  const initialSteps = useMemo(
-    () => dijkstraTopic.run(dijkstraTopic.curatedInput),
-    []
-  );
-
-  useEffect(() => {
-    store.getState().load(initialSteps);
-  }, [store, initialSteps]);
 
   usePlayer(store);
 
@@ -53,46 +45,32 @@ export function DijkstraWorkbench() {
   const playing = store((s) => s.playing);
   const speed = store((s) => s.speed);
 
-  const current = steps[index] as Step<DijkstraState> | undefined;
+  const current = steps[index];
   const total = steps.length;
 
-  const runInput = (input: DijkstraInput) => {
-    setGraph(layoutGraph(input));
-    store.getState().load(dijkstraTopic.run(input));
-  };
-
-  const emptyState: DijkstraState = {
-    distances: {},
-    previous: {},
-    visited: [],
-    frontier: [],
-    current: null,
-    relaxing: null,
-    path: null,
+  const runInput = (next: unknown) => {
+    setInput(next);
+    store.getState().load(topic.run(next));
   };
 
   return (
     <div
-      data-testid="dijkstra-workbench"
+      data-testid={`${topic.slug}-workbench`}
       className="flex min-h-0 flex-1 overflow-hidden"
     >
       <section className="relative flex min-w-0 flex-1 flex-col bg-base">
         <div className="relative flex flex-1 items-center justify-center overflow-hidden p-xl">
-          <div className="absolute left-4 top-4 z-10 flex items-center gap-md border border-outline-variant bg-surface/80 p-sm backdrop-blur-sm">
-            {LEGEND.map((item) => (
-              <div key={item.label} className="flex items-center gap-sm">
-                <span className={`h-3 w-3 ${item.className}`} />
-                <span className="font-label-caps text-[9px] uppercase tracking-widest text-on-surface-variant">
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-          <DijkstraGraph
-            graph={graph}
-            state={current?.state ?? emptyState}
-            highlights={current?.highlights ?? []}
-          />
+          {current ? (
+            <Renderer
+              input={input}
+              state={current.state}
+              highlights={current.highlights}
+            />
+          ) : (
+            <p className="font-code-md text-code-md text-on-surface-variant opacity-70">
+              Loading walkthrough.
+            </p>
+          )}
         </div>
         <PlayerControls
           index={index}
@@ -134,23 +112,21 @@ export function DijkstraWorkbench() {
 
           {tab === "logic" ? (
             <PseudocodePanel
-              lines={dijkstraTopic.pseudocode}
+              lines={topic.pseudocode}
               activeLine={current?.line}
             />
           ) : (
             <CountersPanel
               counters={current?.counters ?? {}}
-              defs={dijkstraTopic.counters}
-              complexity={dijkstraTopic.complexity}
+              defs={topic.counters}
+              complexity={topic.complexity}
             />
           )}
 
           <div className="border-t border-outline-variant pt-md">
-            <SandboxPanel<DijkstraInput>
-              defaultValue={dijkstraTopic.serializeInput(
-                dijkstraTopic.curatedInput
-              )}
-              parse={dijkstraTopic.parseInput}
+            <SandboxPanel<unknown>
+              defaultValue={topic.serializeInput(topic.curatedInput)}
+              parse={topic.parseInput}
               onRun={runInput}
               hint={SANDBOX_HINT}
             />
