@@ -19,6 +19,7 @@ describe("topic registry seam", () => {
 
   it("reports registration via hasTopicModule", () => {
     expect(hasTopicModule("dijkstra")).toBe(true);
+    expect(hasTopicModule("__no-such-topic__")).toBe(false);
     const comingSoon = topics.find((t) => t.status === "coming-soon");
     if (comingSoon) {
       expect(hasTopicModule(comingSoon.slug)).toBe(false);
