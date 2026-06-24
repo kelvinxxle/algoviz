@@ -45,6 +45,23 @@ function clean(value: number): number {
 }
 
 /**
+ * Decision tolerance, far below the 6-decimal display granularity. It absorbs
+ * genuine IEEE-754 dust (so an intended-equal balance is not wrongly rejected)
+ * without ever flipping a meaningful boundary like 0.9999995 vs 1.
+ */
+const DECISION_EPSILON = 1e-9;
+
+/**
+ * Higher-precision display for narration balances. Rounding to 6 decimals can
+ * lift a just-below-cost balance (e.g. 0.9999995) onto the cost, making the
+ * narrated inequality read as a falsehood; 9 decimals keeps the shown number
+ * faithful to the verdict while still trimming float dust.
+ */
+function show(value: number): string {
+  return String(Math.round(value * 1e9) / 1e9);
+}
+
+/**
  * Token-bucket rate limiting as a deterministic sequence of frames.
  *
  * Time is part of the input: each request carries a timestamp, so this is a pure
@@ -111,7 +128,6 @@ export function run(
         lastRefillTime,
         currentIndex: frame.currentIndex,
         phase: frame.phase,
-        statuses: [...statuses],
       },
       narration: frame.narration,
       highlights: frame.highlights,
@@ -161,7 +177,7 @@ export function run(
     const elapsed = Math.max(0, req.t - lastRefillTime);
     const before = tokens;
     const gained = Math.min(capacity - tokens, elapsed * input.refillRate);
-    tokens = clean(Math.min(capacity, tokens + elapsed * input.refillRate));
+    tokens = Math.min(capacity, tokens + elapsed * input.refillRate);
     lastRefillTime = req.t;
     counters.refilled = clean(counters.refilled + Math.max(0, gained));
 
@@ -185,8 +201,8 @@ export function run(
     }
 
     counters.processed += 1;
-    if (tokens >= cost) {
-      tokens = clean(tokens - cost);
+    if (tokens + DECISION_EPSILON >= cost) {
+      tokens = tokens - cost;
       statuses[index] = "allowed";
       counters.allowed += 1;
       if (
@@ -196,7 +212,7 @@ export function run(
           currentIndex: index,
           line: LINE.allow,
           caption: `Allow ${req.id}`,
-          narration: `Bucket holds ${clean(tokens + cost)} >= cost ${cost}: allow ${req.id} and spend ${cost} token(s), leaving ${clean(tokens)}.`,
+          narration: `Bucket holds ${show(tokens + cost)} >= cost ${cost}: allow ${req.id} and spend ${cost} token(s), leaving ${show(tokens)}.`,
           highlights: requestHighlights(index, "path", "path"),
         })
       ) {
@@ -212,7 +228,7 @@ export function run(
           currentIndex: index,
           line: LINE.reject,
           caption: `Reject ${req.id}`,
-          narration: `Bucket holds ${clean(tokens)} < cost ${cost}: reject ${req.id}. The bucket is unchanged at ${clean(tokens)}.`,
+          narration: `Bucket holds ${show(tokens)} < cost ${cost}: reject ${req.id}. The bucket is unchanged at ${show(tokens)}.`,
           highlights: requestHighlights(index, "rejected", "rejected"),
         })
       ) {

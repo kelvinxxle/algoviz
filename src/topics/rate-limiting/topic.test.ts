@@ -1,8 +1,27 @@
 import { describe, it, expect } from "vitest";
+import type { Step } from "@/engine/contract";
 import { rateLimitingTopic } from "./topic";
 import { curatedInput } from "./curated";
+import type { RateLimitState } from "./types";
 
 const last = <T>(arr: readonly T[]): T => arr[arr.length - 1];
+
+type Verdict = "allowed" | "rejected" | "pending";
+
+// Per-request verdict as the renderer reads it: from the frame's highlights, not
+// from algorithm state. `path` => allowed, `rejected` => rejected, else pending.
+const verdicts = (
+  step: Step<RateLimitState>,
+  ids: readonly string[]
+): Verdict[] =>
+  ids.map((id) => {
+    const role = step.highlights.find(
+      (h) => h.target === `request:${id}`
+    )?.role;
+    if (role === "path") return "allowed";
+    if (role === "rejected") return "rejected";
+    return "pending";
+  });
 
 describe("rate-limiting topic bundle", () => {
   it("is registered under the rate-limiting slug", () => {
@@ -20,7 +39,8 @@ describe("rate-limiting topic bundle", () => {
       refilled: 4,
     });
     expect(final.state.tokens).toBe(1);
-    expect(final.state.statuses).toEqual([
+    const ids = rateLimitingTopic.curatedInput.requests.map((r) => r.id);
+    expect(verdicts(final, ids)).toEqual([
       "allowed",
       "allowed",
       "allowed",

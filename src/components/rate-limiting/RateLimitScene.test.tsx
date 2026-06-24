@@ -25,7 +25,6 @@ const state: RateLimitState = {
   lastRefillTime: 2,
   currentIndex: 2,
   phase: "allow",
-  statuses: ["allowed", "rejected", "allowed"],
 };
 
 const highlights: Highlight[] = [

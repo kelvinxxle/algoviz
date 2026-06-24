@@ -41,6 +41,11 @@ export type RatePhase = "init" | "refill" | "allow" | "reject" | "done";
  * The dynamic algorithm state at one frame. A full snapshot so scrubbing to any
  * index renders without replay. Config (capacity, rate, cost) lives on the input
  * and is not duplicated here beyond the live bucket level.
+ *
+ * The token bucket's working set is O(1): two scalars (`tokens` and
+ * `lastRefillTime`) plus frame bookkeeping. No per-request history is kept here;
+ * per-request allow/reject verdicts ride the `highlights` channel of each Step,
+ * and the renderer reconstructs the marker strip from those.
  */
 export interface RateLimitState {
   /** Bucket level after this frame's action. May be fractional. */
@@ -53,6 +58,4 @@ export interface RateLimitState {
   readonly currentIndex: number | null;
   /** Which decision step this frame shows. */
   readonly phase: RatePhase;
-  /** Decision per request, parallel to `input.requests`. */
-  readonly statuses: readonly RequestStatus[];
 }

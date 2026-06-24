@@ -1,6 +1,26 @@
 import { describe, it, expect } from "vitest";
+import type { Step } from "@/engine/contract";
 import { run } from "./run";
-import type { RateLimitInput } from "./types";
+import type { RateLimitInput, RateLimitState } from "./types";
+
+type Verdict = "allowed" | "rejected" | "pending";
+
+/**
+ * Per-request verdict as the renderer sees it: derived from the frame's
+ * highlights (the emphasis channel), not from algorithm state. `path` marks an
+ * allowed request, `rejected` a rejected one, anything else still pending.
+ */
+const verdictOf = (step: Step<RateLimitState>, id: string): Verdict => {
+  const role = step.highlights.find((h) => h.target === `request:${id}`)?.role;
+  if (role === "path") return "allowed";
+  if (role === "rejected") return "rejected";
+  return "pending";
+};
+
+const verdicts = (
+  step: Step<RateLimitState>,
+  ids: readonly string[]
+): Verdict[] => ids.map((id) => verdictOf(step, id));
 
 // Hand-computed oracle. Bucket capacity 2, refill 1 token/unit, cost 1, full
 // start. Requests: R1,R2,R3 at t=0 (a burst), R4 at t=1.
@@ -30,7 +50,7 @@ describe("rate-limiting run", () => {
     expect(init.state.phase).toBe("init");
     expect(init.state.tokens).toBe(2);
     expect(init.state.currentIndex).toBeNull();
-    expect(init.state.statuses).toEqual([
+    expect(verdicts(init, ["R1", "R2", "R3", "R4"])).toEqual([
       "pending",
       "pending",
       "pending",
@@ -39,9 +59,9 @@ describe("rate-limiting run", () => {
     expect(init.narration.length).toBeGreaterThan(0);
   });
 
-  it("decides each request and records the oracle statuses", () => {
+  it("decides each request and records the oracle verdicts", () => {
     const final = last(run(INPUT));
-    expect(final.state.statuses).toEqual([
+    expect(verdicts(final, ["R1", "R2", "R3", "R4"])).toEqual([
       "allowed",
       "allowed",
       "rejected",
@@ -62,6 +82,30 @@ describe("rate-limiting run", () => {
 
   it("is deterministic: two runs produce deep-equal steps", () => {
     expect(run(INPUT)).toEqual(run(INPUT));
+  });
+
+  it("keeps the emitted algorithm state O(1): shape is independent of request count", () => {
+    const make = (n: number): RateLimitInput => ({
+      capacity: 5,
+      refillRate: 1,
+      cost: 1,
+      startTokens: 5,
+      requests: Array.from({ length: n }, (_, i) => ({ id: `R${i}`, t: i })),
+    });
+    const small = last(run(make(1)));
+    const large = last(run(make(50)));
+    // The token bucket's working set is two scalars (tokens, lastRefillTime),
+    // so the per-frame snapshot must not grow with the request count. Pinning
+    // this keeps the O(1) space claim honest: no per-request array may be
+    // smuggled into Step.state. Per-request verdicts live in the highlights
+    // channel and the renderer reconstructs the marker strip from there.
+    expect(Object.keys(small.state).sort()).toEqual(
+      Object.keys(large.state).sort()
+    );
+    for (const value of Object.values(large.state)) {
+      expect(Array.isArray(value)).toBe(false);
+    }
+    expect("statuses" in large.state).toBe(false);
   });
 
   it("pins the exact ordered frame sequence (guards refactors)", () => {
@@ -97,7 +141,7 @@ describe("rate-limiting run", () => {
     for (const s of steps) expect(s.state.tokens).toBeLessThanOrEqual(2);
     // 100 units of refill is capped at capacity 2, then the request spends 1.
     expect(last(steps).state.tokens).toBe(1);
-    expect(last(steps).state.statuses).toEqual(["allowed"]);
+    expect(verdicts(last(steps), ["A"])).toEqual(["allowed"]);
   });
 
   it("processes requests in timestamp order regardless of input order", () => {
@@ -113,8 +157,8 @@ describe("rate-limiting run", () => {
     };
     const final = last(run(unordered));
     // early (t=0) spends the only token; late (t=5) refills and is allowed.
-    // statuses stay parallel to the original input order.
-    expect(final.state.statuses).toEqual(["allowed", "allowed"]);
+    // verdicts stay parallel to the original input order.
+    expect(verdicts(final, ["late", "early"])).toEqual(["allowed", "allowed"]);
   });
 
   it("honors a per-request cost that overrides the default", () => {
@@ -126,7 +170,7 @@ describe("rate-limiting run", () => {
       requests: [{ id: "big", t: 0, cost: 4 }],
     };
     const final = last(run(costly));
-    expect(final.state.statuses).toEqual(["rejected"]);
+    expect(verdicts(final, ["big"])).toEqual(["rejected"]);
     expect(final.state.tokens).toBe(3);
   });
 
@@ -210,7 +254,7 @@ describe("rate-limiting run", () => {
     };
     const final = last(run(fractional));
     expect(final.state.tokens).toBe(0.5);
-    expect(final.state.statuses).toEqual([
+    expect(verdicts(final, ["R1", "R2", "R3", "R4"])).toEqual([
       "rejected",
       "rejected",
       "allowed",
@@ -227,5 +271,68 @@ describe("rate-limiting run", () => {
   it("handles an empty timeline with just an init and done frame", () => {
     const empty = run({ capacity: 2, refillRate: 1, cost: 1, requests: [] });
     expect(empty.map((s) => s.state.phase)).toEqual(["init", "done"]);
+  });
+});
+
+describe("rate-limiting run allow/reject boundary", () => {
+  it("rejects a balance just below cost even though it would round up to cost", () => {
+    // Empty bucket, refill 1/unit. At t=0.9999995 the true balance is
+    // 0.9999995 (< 1), which must REJECT. Rounding the balance to 6 decimals
+    // first lifts it to 1.0 and would wrongly allow, so the decision must read
+    // the unrounded balance.
+    const final = last(
+      run({
+        capacity: 1,
+        refillRate: 1,
+        cost: 1,
+        startTokens: 0,
+        requests: [{ id: "A", t: 0.9999995 }],
+      })
+    );
+    expect(verdictOf(final, "A")).toBe("rejected");
+  });
+
+  it("allows a balance exactly equal to cost", () => {
+    const final = last(
+      run({
+        capacity: 1,
+        refillRate: 0,
+        cost: 1,
+        startTokens: 1,
+        requests: [{ id: "A", t: 0 }],
+      })
+    );
+    expect(verdictOf(final, "A")).toBe("allowed");
+    expect(final.state.tokens).toBe(0);
+  });
+
+  it("allows a balance just above cost and spends down to the remainder", () => {
+    const final = last(
+      run({
+        capacity: 2,
+        refillRate: 0,
+        cost: 1,
+        startTokens: 1.5,
+        requests: [{ id: "A", t: 0 }],
+      })
+    );
+    expect(verdictOf(final, "A")).toBe("allowed");
+    expect(final.state.tokens).toBe(0.5);
+  });
+
+  it("absorbs IEEE-754 dust so an intended-equal balance still allows", () => {
+    // cost is 0.1 + 0.2 === 0.30000000000000004; the bucket holds exactly 0.3.
+    // A bit-exact `tokens >= cost` would reject this genuinely-sufficient
+    // balance, so the decision needs a sub-display tolerance.
+    const final = last(
+      run({
+        capacity: 1,
+        refillRate: 0,
+        cost: 0.1 + 0.2,
+        startTokens: 0.3,
+        requests: [{ id: "A", t: 0 }],
+      })
+    );
+    expect(verdictOf(final, "A")).toBe("allowed");
   });
 });
