@@ -2,25 +2,37 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { CatalogStats } from "./CatalogStats";
 import { topics } from "@/data/topics";
+import type { Topic } from "@/data/topics";
+
+function makeTopic(slug: string, status: Topic["status"]): Topic {
+  return {
+    slug,
+    title: slug,
+    flavor: "canonical",
+    status,
+    blurb: "blurb",
+    complexity: "O(1)",
+    icon: "icon",
+  };
+}
+
+// A fixed synthetic split decouples the counting assertions from the live
+// catalog, so flipping a real topic to available never breaks this test.
+const fixture: Topic[] = [
+  makeTopic("a-1", "available"),
+  makeTopic("a-2", "available"),
+  makeTopic("a-3", "available"),
+  makeTopic("s-1", "coming-soon"),
+  makeTopic("s-2", "coming-soon"),
+];
 
 describe("CatalogStats", () => {
-  it("shows honest catalog counts derived from the topic partition", () => {
-    render(<CatalogStats topics={topics} />);
+  it("counts the available and coming-soon split from its topics prop", () => {
+    render(<CatalogStats topics={fixture} />);
 
-    const expectedAvailable = topics.filter(
-      (t) => t.status === "available"
-    ).length;
-    const expectedComingSoon = topics.filter(
-      (t) => t.status === "coming-soon"
-    ).length;
-
-    const total = screen.getByTestId("stat-total");
-    const available = screen.getByTestId("stat-available");
-    const comingSoon = screen.getByTestId("stat-coming-soon");
-
-    expect(total).toHaveTextContent(String(topics.length));
-    expect(available).toHaveTextContent(String(expectedAvailable));
-    expect(comingSoon).toHaveTextContent(String(expectedComingSoon));
+    expect(screen.getByTestId("stat-total")).toHaveTextContent("5");
+    expect(screen.getByTestId("stat-available")).toHaveTextContent("3");
+    expect(screen.getByTestId("stat-coming-soon")).toHaveTextContent("2");
   });
 
   it("labels each stat", () => {
