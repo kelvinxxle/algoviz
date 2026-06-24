@@ -1,5 +1,6 @@
 import type { Highlight, HighlightRole, Step } from "@/engine/contract";
 import type { DijkstraInput, DijkstraState, FrontierEntry } from "./types";
+import { MinHeap } from "./heap";
 
 /**
  * Pseudocode line numbers emitted via `Step.line`. Kept in sync with the
@@ -75,8 +76,18 @@ export function run(
   distances[input.source] = 0;
 
   const visited: string[] = [];
+  const visitedSet = new Set<string>();
   const frontier = new Map<string, number>([[input.source, 0]]);
   const counters = { settled: 0, relaxations: 0, updates: 0, pushes: 1 };
+
+  // The priority queue. `frontier` holds the best tentative distance per queued
+  // node for display and decrease-key bookkeeping; the heap gives O(log V)
+  // extract-min. A heap entry is stale once its node is settled or a smaller
+  // distance for that node has been pushed, so it is skipped on extraction.
+  const queue = new MinHeap<FrontierEntry>(
+    (a, b) => a.dist - b.dist || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+  );
+  queue.push({ id: input.source, dist: 0 });
 
   const steps: Step<DijkstraState>[] = [];
   const capped = () => steps.length >= cap;
@@ -136,16 +147,19 @@ export function run(
   });
 
   while (frontier.size > 0 && !capped()) {
-    let u = "";
-    let ud = Infinity;
-    for (const [id, d] of frontier) {
-      if (d < ud || (d === ud && (u === "" || id < u))) {
-        u = id;
-        ud = d;
-      }
+    let entry = queue.pop();
+    while (
+      entry !== undefined &&
+      (visitedSet.has(entry.id) || frontier.get(entry.id) !== entry.dist)
+    ) {
+      entry = queue.pop();
     }
+    if (entry === undefined) break;
+    const u = entry.id;
+    const ud = entry.dist;
     frontier.delete(u);
     visited.push(u);
+    visitedSet.add(u);
     counters.settled += 1;
 
     if (
@@ -165,12 +179,13 @@ export function run(
       counters.relaxations += 1;
       const alt = ud + weight;
       const dv = distances[v];
-      const improves = !visited.includes(v) && (dv === null || alt < dv);
+      const improves = !visitedSet.has(v) && (dv === null || alt < dv);
 
       if (improves) {
         distances[v] = alt;
         previous[v] = u;
         frontier.set(v, alt);
+        queue.push({ id: v, dist: alt });
         counters.updates += 1;
         counters.pushes += 1;
         stop = !emit({

@@ -48,6 +48,83 @@ describe("dijkstra run", () => {
     expect(run(GRAPH)).toEqual(run(GRAPH));
   });
 
+  it("pins the exact ordered frame sequence (guards engine refactors)", () => {
+    const summary = run(GRAPH).map((s) => ({
+      caption: s.caption,
+      line: s.line,
+      current: s.state.current,
+      relaxing: s.state.relaxing,
+    }));
+    expect(summary).toEqual([
+      { caption: "Initialize", line: 2, current: null, relaxing: null },
+      { caption: "Extract A", line: 5, current: "A", relaxing: null },
+      {
+        caption: "Relax A to B",
+        line: 9,
+        current: "A",
+        relaxing: { from: "A", to: "B" },
+      },
+      {
+        caption: "Relax A to C",
+        line: 9,
+        current: "A",
+        relaxing: { from: "A", to: "C" },
+      },
+      { caption: "Extract B", line: 5, current: "B", relaxing: null },
+      {
+        caption: "Check B to A",
+        line: 8,
+        current: "B",
+        relaxing: { from: "B", to: "A" },
+      },
+      {
+        caption: "Relax B to C",
+        line: 9,
+        current: "B",
+        relaxing: { from: "B", to: "C" },
+      },
+      {
+        caption: "Relax B to D",
+        line: 9,
+        current: "B",
+        relaxing: { from: "B", to: "D" },
+      },
+      { caption: "Extract C", line: 5, current: "C", relaxing: null },
+      {
+        caption: "Check C to A",
+        line: 8,
+        current: "C",
+        relaxing: { from: "C", to: "A" },
+      },
+      {
+        caption: "Check C to B",
+        line: 8,
+        current: "C",
+        relaxing: { from: "C", to: "B" },
+      },
+      {
+        caption: "Relax C to D",
+        line: 9,
+        current: "C",
+        relaxing: { from: "C", to: "D" },
+      },
+      { caption: "Extract D", line: 5, current: "D", relaxing: null },
+      {
+        caption: "Check D to B",
+        line: 8,
+        current: "D",
+        relaxing: { from: "D", to: "B" },
+      },
+      {
+        caption: "Check D to C",
+        line: 8,
+        current: "D",
+        relaxing: { from: "D", to: "C" },
+      },
+      { caption: "Done", line: 4, current: null, relaxing: null },
+    ]);
+  });
+
   it("breaks frontier ties by node id for stable output", () => {
     const tie: DijkstraInput = {
       nodes: [{ id: "S" }, { id: "X" }, { id: "Y" }],

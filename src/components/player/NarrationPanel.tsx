@@ -36,7 +36,11 @@ export function NarrationPanel({
           STEP {position} / {total}
         </span>
       </header>
-      <p className="font-body-md text-body-md leading-relaxed text-on-surface">
+      <p
+        aria-live="polite"
+        aria-atomic="true"
+        className="font-body-md text-body-md leading-relaxed text-on-surface"
+      >
         {narration}
       </p>
     </section>

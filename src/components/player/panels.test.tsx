@@ -24,6 +24,20 @@ describe("NarrationPanel", () => {
     );
     expect(screen.getByText("Extract B")).toBeInTheDocument();
   });
+
+  it("announces narration changes to assistive tech via a polite live region", () => {
+    render(
+      <NarrationPanel
+        narration="Relaxing edge"
+        caption="Extract B"
+        index={3}
+        total={10}
+      />
+    );
+    const live = screen.getByText("Relaxing edge");
+    expect(live).toHaveAttribute("aria-live", "polite");
+    expect(live).toHaveAttribute("aria-atomic", "true");
+  });
 });
 
 describe("PseudocodePanel", () => {
