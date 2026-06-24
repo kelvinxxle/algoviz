@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AlgoViz - LRU Cache Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Custom Scrollbar for IDE feel */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333333; }
+        ::-webkit-scrollbar-thumb:hover { background: #7dd3fc; }
+
+        /* Technical Brutalism Grid Background */
+        .bg-grid-pattern {
+            background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .node-pulse {
+            animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { border-color: #262626; }
+            50% { border-color: #7dd3fc; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "surface-container-high": "#2a2a2a",
+                "on-tertiary-container": "#555453",
+                "secondary-fixed": "#79f9ce",
+                "inverse-surface": "#e5e2e1",
+                "tertiary-fixed-dim": "#c9c6c5",
+                "surface-container-low": "#1c1b1b",
+                "primary-fixed-dim": "#7bd1fa",
+                "tertiary": "#e7e4e3",
+                "on-surface": "#e5e2e1",
+                "surface-container": "#201f1f",
+                "surface-bright": "#393939",
+                "outline": "#899298",
+                "inverse-primary": "#006686",
+                "secondary-fixed-dim": "#5adcb3",
+                "surface-dim": "#131313",
+                "primary-container": "#7dd3fc",
+                "on-tertiary-fixed": "#1c1b1b",
+                "on-secondary-fixed": "#002117",
+                "outline-variant": "#3f484e",
+                "on-secondary-fixed-variant": "#00513d",
+                "on-error": "#690005",
+                "surface-variant": "#353534",
+                "tertiary-container": "#cbc8c7",
+                "error-container": "#93000a",
+                "surface-tint": "#7bd1fa",
+                "on-tertiary": "#313030",
+                "on-background": "#e5e2e1",
+                "tertiary-fixed": "#e5e2e1",
+                "background": "#131313",
+                "on-tertiary-fixed-variant": "#474646",
+                "secondary": "#5adcb3",
+                "surface": "#131313",
+                "on-surface-variant": "#bec8ce",
+                "error": "#ffb4ab",
+                "on-primary-fixed": "#001e2b",
+                "on-secondary": "#003829",
+                "on-primary-container": "#005b78",
+                "on-primary": "#003547",
+                "inverse-on-surface": "#313030",
+                "surface-container-highest": "#353534",
+                "secondary-container": "#00a782",
+                "surface-container-lowest": "#0e0e0e",
+                "on-error-container": "#ffdad6",
+                "on-secondary-container": "#003326",
+                "primary": "#c5eaff",
+                "primary-fixed": "#c0e8ff",
+                "on-primary-fixed-variant": "#004d66"
+              },
+              "borderRadius": {
+                "DEFAULT": "0rem",
+                "lg": "0rem",
+                "xl": "0rem",
+                "full": "9999px"
+              },
+              "spacing": {
+                "unit": "4px",
+                "sm": "8px",
+                "panel-margin": "12px",
+                "md": "16px",
+                "lg": "24px",
+                "gutter": "1px",
+                "xs": "4px",
+                "xl": "32px"
+              },
+              "fontFamily": {
+                "body-lg": ["Geist"],
+                "display": ["Geist"],
+                "code-lg": ["JetBrains Mono"],
+                "label-caps": ["JetBrains Mono"],
+                "headline-md": ["Geist"],
+                "headline-lg": ["Geist"],
+                "body-md": ["Geist"],
+                "code-md": ["JetBrains Mono"]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container h-screen overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-12 px-lg ml-64 bg-surface border-b border-outline-variant fixed top-0 left-0 right-0 z-50">
+<div class="flex items-center gap-md">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface tracking-tighter">AlgoViz</h1>
+<nav class="hidden md:flex gap-md ml-xl">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">Benchmarks</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="#">History</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative flex items-center bg-surface-container-lowest border border-outline-variant px-sm py-xs focus-within:ring-1 focus-within:ring-primary">
+<span class="material-symbols-outlined text-[18px] text-outline">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-48 placeholder:text-outline-variant font-code-md" placeholder="Find Algorithm..." type="text"/>
+</div>
+<div class="flex gap-sm">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary p-xs">terminal</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary p-xs">bolt</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary p-xs">help_outline</button>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="flex flex-col h-full py-md bg-surface-dim border-r border-outline-variant fixed left-0 top-0 w-64 z-50">
+<div class="px-md mb-xl">
+<div class="flex items-center gap-sm mb-xs">
+<span class="material-symbols-outlined text-primary text-[32px]">account_tree</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary tracking-tighter">AlgoViz</span>
+</div>
+<span class="font-label-caps text-[10px] text-outline tracking-widest uppercase">v2.4.0-stable</span>
+</div>
+<div class="px-md mb-md">
+<button class="w-full bg-primary-container text-on-primary-container py-sm font-label-caps text-label-caps flex items-center justify-center gap-sm hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                New Simulation
+            </button>
+</div>
+<nav class="flex-1 overflow-y-auto space-y-1">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="sort">sort</span>
+<span class="font-body-md text-body-md">Sorting</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-body-md text-body-md">Graphs</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-primary bg-surface-container-highest border-l-2 border-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="functions">functions</span>
+<span class="font-body-md text-body-md">Dynamic Programming</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-body-md text-body-md">System Design</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-body-md text-body-md">Tree Structures</span>
+</a>
+</nav>
+<div class="mt-auto px-md pt-md border-t border-outline-variant space-y-1">
+<a class="flex items-center gap-md py-sm text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+<a class="flex items-center gap-md py-sm text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label-caps text-label-caps">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="ml-64 mt-12 h-[calc(100vh-3rem)] flex bg-grid-pattern relative">
+<!-- Left Panel: Visualization Canvas -->
+<div class="flex-1 overflow-hidden flex flex-col relative border-r border-outline-variant">
+<!-- Canvas Header -->
+<div class="h-10 bg-surface border-b border-outline-variant flex items-center justify-between px-md">
+<div class="flex items-center gap-sm">
+<span class="font-label-caps text-label-caps text-primary uppercase">Workspace / Cache / LRU_Standard</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed animate-pulse"></span>
+</div>
+<div class="flex gap-sm">
+<button class="bg-surface-container-high px-sm py-1 border border-outline-variant text-[11px] font-label-caps flex items-center gap-1 hover:border-primary">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span> RUN
+                    </button>
+<button class="bg-surface-container-high px-sm py-1 border border-outline-variant text-[11px] font-label-caps flex items-center gap-1 hover:border-primary">
+<span class="material-symbols-outlined text-[14px]">step_over</span> STEP
+                    </button>
+</div>
+</div>
+<!-- Visualization Area -->
+<div class="flex-1 p-lg overflow-y-auto space-y-xl">
+<!-- Hash Map Visualization -->
+<section>
+<h3 class="font-label-caps text-label-caps text-outline mb-md uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">grid_view</span> Hash Map (Lookup)
+                    </h3>
+<div class="grid grid-cols-4 gap-gutter bg-outline-variant border border-outline-variant">
+<!-- Map Entry 1 -->
+<div class="bg-surface-container-low p-md group hover:bg-surface-container">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-code-md text-secondary-fixed">key_0x1A</span>
+<span class="font-label-caps text-[10px] text-outline">HASH: 421</span>
+</div>
+<div class="border border-outline-variant p-sm font-code-md text-[12px] bg-black">
+<div class="text-on-surface-variant italic mb-1">// ptr to node</div>
+<div class="text-primary">0xBF328A</div>
+</div>
+</div>
+<!-- Map Entry 2 -->
+<div class="bg-surface-container-low p-md border-l border-outline-variant">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-code-md text-secondary-fixed">key_0x2B</span>
+<span class="font-label-caps text-[10px] text-outline">HASH: 892</span>
+</div>
+<div class="border border-outline-variant p-sm font-code-md text-[12px] bg-black">
+<div class="text-on-surface-variant italic mb-1">// ptr to node</div>
+<div class="text-primary">0xCF4410</div>
+</div>
+</div>
+<!-- Map Entry 3 (Active) -->
+<div class="bg-surface-container-high p-md border-l border-primary/40 relative">
+<div class="absolute top-0 right-0 bg-primary px-1 text-[8px] text-black font-bold uppercase">Active</div>
+<div class="flex justify-between items-start mb-sm">
+<span class="font-code-md text-primary">key_0x7F</span>
+<span class="font-label-caps text-[10px] text-outline">HASH: 014</span>
+</div>
+<div class="border border-primary p-sm font-code-md text-[12px] bg-black shadow-[0_0_10px_rgba(125,211,252,0.1)]">
+<div class="text-on-surface-variant italic mb-1">// ptr to node</div>
+<div class="text-primary">0xDF9921</div>
+</div>
+</div>
+<!-- Map Entry 4 -->
+<div class="bg-surface-container-low p-md border-l border-outline-variant">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-code-md text-secondary-fixed">key_0x0C</span>
+<span class="font-label-caps text-[10px] text-outline">HASH: 556</span>
+</div>
+<div class="border border-outline-variant p-sm font-code-md text-[12px] bg-black">
+<div class="text-on-surface-variant italic mb-1">// ptr to node</div>
+<div class="text-primary">0xEF0032</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Doubly Linked List Visualization -->
+<section>
+<h3 class="font-label-caps text-label-caps text-outline mb-md uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">swap_horiz</span> Doubly Linked List (Order)
+                    </h3>
+<div class="flex items-center gap-0 overflow-x-auto pb-md">
+<!-- Head Indicator -->
+<div class="flex flex-col items-center mr-md">
+<span class="font-label-caps text-[10px] text-primary mb-2 uppercase">MRU</span>
+<div class="w-px h-8 bg-primary"></div>
+</div>
+<!-- Node 1 -->
+<div class="flex items-center shrink-0">
+<div class="w-32 h-40 bg-surface-container-high border-2 border-primary p-sm flex flex-col shadow-[0_0_15px_rgba(125,211,252,0.1)]">
+<div class="border-b border-outline-variant pb-xs mb-xs">
+<span class="font-label-caps text-[10px] text-outline">ADDR: 0xDF9921</span>
+</div>
+<div class="flex-1 flex flex-col justify-center items-center gap-xs">
+<span class="font-code-lg text-headline-md text-primary">7F</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">VAL: 1024</span>
+</div>
+<div class="flex justify-between gap-1 mt-auto pt-xs border-t border-outline-variant">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">PREV</div>
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">NEXT</div>
+</div>
+</div>
+<!-- Arrow Connection -->
+<div class="flex flex-col items-center justify-center -space-y-1">
+<div class="h-0.5 w-12 bg-primary"></div>
+<div class="h-0.5 w-12 bg-outline-variant"></div>
+</div>
+</div>
+<!-- Node 2 -->
+<div class="flex items-center shrink-0">
+<div class="w-32 h-40 bg-surface border border-outline-variant p-sm flex flex-col">
+<div class="border-b border-outline-variant pb-xs mb-xs">
+<span class="font-label-caps text-[10px] text-outline">ADDR: 0xBF328A</span>
+</div>
+<div class="flex-1 flex flex-col justify-center items-center gap-xs">
+<span class="font-code-lg text-headline-md text-on-surface">1A</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">VAL: 512</span>
+</div>
+<div class="flex justify-between gap-1 mt-auto pt-xs border-t border-outline-variant">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">PREV</div>
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">NEXT</div>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center -space-y-1">
+<div class="h-0.5 w-12 bg-outline-variant"></div>
+<div class="h-0.5 w-12 bg-outline-variant"></div>
+</div>
+</div>
+<!-- Node 3 -->
+<div class="flex items-center shrink-0">
+<div class="w-32 h-40 bg-surface border border-outline-variant p-sm flex flex-col">
+<div class="border-b border-outline-variant pb-xs mb-xs">
+<span class="font-label-caps text-[10px] text-outline">ADDR: 0xCF4410</span>
+</div>
+<div class="flex-1 flex flex-col justify-center items-center gap-xs">
+<span class="font-code-lg text-headline-md text-on-surface">2B</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">VAL: 2048</span>
+</div>
+<div class="flex justify-between gap-1 mt-auto pt-xs border-t border-outline-variant">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">PREV</div>
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">NEXT</div>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center -space-y-1">
+<div class="h-0.5 w-12 bg-outline-variant"></div>
+<div class="h-0.5 w-12 bg-outline-variant"></div>
+</div>
+</div>
+<!-- Node 4 (LRU) -->
+<div class="flex items-center shrink-0">
+<div class="w-32 h-40 bg-surface border border-error p-sm flex flex-col relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-error px-2 py-0.5 font-label-caps text-[8px] text-on-error uppercase">Next Eviction</div>
+<div class="border-b border-outline-variant pb-xs mb-xs">
+<span class="font-label-caps text-[10px] text-outline">ADDR: 0xEF0032</span>
+</div>
+<div class="flex-1 flex flex-col justify-center items-center gap-xs">
+<span class="font-code-lg text-headline-md text-error">0C</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant">VAL: 64</span>
+</div>
+<div class="flex justify-between gap-1 mt-auto pt-xs border-t border-outline-variant">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">PREV</div>
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-1 text-center font-code-md text-[9px]">NEXT</div>
+</div>
+</div>
+</div>
+<!-- Tail Indicator -->
+<div class="flex flex-col items-center ml-md">
+<span class="font-label-caps text-[10px] text-error mb-2 uppercase">LRU</span>
+<div class="w-px h-8 bg-error"></div>
+</div>
+</div>
+</section>
+<!-- Data Flow Visualization (Animated) -->
+<div class="absolute bottom-md left-md right-md h-32 border border-outline-variant bg-surface-container-lowest overflow-hidden">
+<div class="absolute top-0 left-0 bg-surface-container-high px-2 py-1 font-label-caps text-[9px] border-r border-b border-outline-variant">REAL-TIME TELEMETRY</div>
+
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="font-code-md text-primary text-[11px] bg-black/60 px-4 py-2 border border-primary/20 backdrop-blur-sm">
+                            GET(key_0x7F) -&gt; CACHE HIT -&gt; MOVE TO HEAD
+                        </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: The Meat (Documentation & Logic) -->
+<div class="w-[400px] bg-surface flex flex-col overflow-y-auto">
+<!-- Section: Complexity -->
+<div class="p-md border-b border-outline-variant">
+<h2 class="font-headline-md text-headline-md mb-md text-primary border-l-4 border-primary pl-md">Complexity Analysis</h2>
+<table class="w-full border-collapse">
+<thead class="bg-surface-container-high">
+<tr>
+<th class="text-left font-label-caps text-[10px] p-2 text-outline border border-outline-variant uppercase">Operation</th>
+<th class="text-left font-label-caps text-[10px] p-2 text-outline border border-outline-variant uppercase">Time</th>
+<th class="text-left font-label-caps text-[10px] p-2 text-outline border border-outline-variant uppercase">Space</th>
+</tr>
+</thead>
+<tbody class="font-code-md text-[13px]">
+<tr>
+<td class="p-2 border border-outline-variant text-on-surface">get(key)</td>
+<td class="p-2 border border-outline-variant text-secondary-fixed">O(1)</td>
+<td class="p-2 border border-outline-variant text-on-surface-variant">O(N)</td>
+</tr>
+<tr>
+<td class="p-2 border border-outline-variant text-on-surface">put(key, val)</td>
+<td class="p-2 border border-outline-variant text-secondary-fixed">O(1)</td>
+<td class="p-2 border border-outline-variant text-on-surface-variant">O(N)</td>
+</tr>
+<tr>
+<td class="p-2 border border-outline-variant text-on-surface">Eviction</td>
+<td class="p-2 border border-outline-variant text-secondary-fixed">O(1)</td>
+<td class="p-2 border border-outline-variant text-on-surface-variant">-</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Section: Eviction Policy -->
+<div class="p-md border-b border-outline-variant">
+<h3 class="font-label-caps text-label-caps text-outline mb-sm uppercase tracking-widest">Policy Overview</h3>
+<p class="text-body-md text-on-surface-variant leading-relaxed mb-md">
+                    Least Recently Used (LRU) discards the least recently used items first. This algorithm requires keeping track of what was used when, which is expensive if one wants to make sure the algorithm always discards the least recently used item.
+                </p>
+<div class="bg-surface-container-low border border-outline-variant p-md">
+<h4 class="font-label-caps text-[11px] text-primary mb-xs uppercase">Optimization Strategy</h4>
+<ul class="space-y-sm text-body-md text-on-surface">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed mt-0.5">check_circle</span>
+<span>Combine Hash Map for <strong>O(1)</strong> lookup.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary-fixed mt-0.5">check_circle</span>
+<span>Double-Link for <strong>O(1)</strong> node removal/reinsertion.</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Section: Pseudocode IDE -->
+<div class="flex-1 flex flex-col bg-surface-container-lowest">
+<div class="bg-surface-container-high px-md py-xs border-b border-outline-variant flex justify-between items-center">
+<span class="font-label-caps text-[10px] text-outline uppercase tracking-widest">Pseudocode / lru_cache.js</span>
+<span class="material-symbols-outlined text-[14px] text-outline">content_copy</span>
+</div>
+<div class="p-md font-code-md text-[13px] leading-relaxed overflow-y-auto h-full">
+<pre class="text-on-surface-variant"><span class="text-primary">function</span> <span class="text-secondary-fixed">get</span>(key) {
+  <span class="text-primary">if</span> (!map.has(key)) <span class="text-primary">return</span> <span class="text-error">-1</span>;
+  
+  <span class="text-on-tertiary-container">// Move to front (MRU)</span>
+  <span class="text-secondary-fixed">updatePriority</span>(key);
+  <span class="text-primary">return</span> map.get(key).val;
+}
+
+<span class="text-primary">function</span> <span class="text-secondary-fixed">put</span>(key, value) {
+  <span class="text-primary">if</span> (map.has(key)) {
+    <span class="text-secondary-fixed">removeNode</span>(map.get(key));
+  } <span class="text-primary">else if</span> (size == capacity) {
+    <span class="text-on-tertiary-container">// Evict LRU from tail</span>
+    <span class="text-secondary-fixed">removeNode</span>(tail.prev);
+    map.delete(tail.prev.key);
+  }
+  
+  <span class="text-secondary-fixed">addNodeToHead</span>(key, value);
+  map.set(key, head.next);
+}
+</pre>
+</div>
+</div>
+<!-- Footer Stats -->
+<div class="p-md bg-surface-container border-t border-outline-variant grid grid-cols-2 gap-md">
+<div>
+<span class="font-label-caps text-[10px] text-outline uppercase">Hits</span>
+<div class="font-code-lg text-headline-md text-primary">84.2%</div>
+</div>
+<div>
+<span class="font-label-caps text-[10px] text-outline uppercase">Evictions</span>
+<div class="font-code-lg text-headline-md text-secondary-fixed">1,024</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro Interaction Scripts -->
+<script>
+        // Simple hover effect for linked structures
+        document.querySelectorAll('.group').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                // In a real app, this would highlight the corresponding node in the list
+            });
+        });
+    </script>
+</body></html>
