@@ -211,7 +211,54 @@ describe("bloom run", () => {
 
   it("counts distinct inserts for n, ignoring duplicates", () => {
     const dup: BloomInput = { m: 8, k: 2, inserts: ["a", "a"], queries: [] };
-    expect(last(run(dup)).state.inserted).toEqual(["a"]);
+    expect(last(run(dup)).state.insertedCount).toBe(1);
+  });
+
+  it("bounds emitted per-frame state by O(m): stores no inserted element list", () => {
+    const few = last(run({ m: 64, k: 3, inserts: ["a", "b"], queries: [] }));
+    const many = last(
+      run({
+        m: 64,
+        k: 3,
+        inserts: [
+          "a",
+          "b",
+          "c",
+          "d",
+          "e",
+          "f",
+          "g",
+          "h",
+          "i",
+          "j",
+          "k",
+          "l",
+          "m",
+          "n",
+          "o",
+          "p",
+          "q",
+          "r",
+          "s",
+          "t",
+        ],
+        queries: [],
+      })
+    );
+    // A Bloom filter stores no elements; the emitted state must not carry the
+    // insert list, only the scalar count needed for the honest fp-rate estimate.
+    expect("inserted" in few.state).toBe(false);
+    expect("inserted" in many.state).toBe(false);
+    expect(few.state.insertedCount).toBe(2);
+    expect(many.state.insertedCount).toBe(20);
+    // Every array the state emits is bounded by m, independent of n.
+    for (const frame of [few, many]) {
+      for (const value of Object.values(frame.state)) {
+        if (Array.isArray(value)) {
+          expect(value.length).toBeLessThanOrEqual(64);
+        }
+      }
+    }
   });
 
   it("caps emitted steps at maxSteps", () => {

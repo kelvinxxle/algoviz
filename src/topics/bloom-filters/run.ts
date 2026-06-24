@@ -107,7 +107,7 @@ export function run(
         probe: frame.probe ?? null,
         verdict: frame.verdict ?? null,
         falsePositive: frame.falsePositive ?? null,
-        inserted: [...inserted],
+        insertedCount: inserted.length,
         setBits: counters.setBits,
         fpRate: falsePositiveRate(k, inserted.length, m),
       },

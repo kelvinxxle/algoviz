@@ -21,7 +21,7 @@ function baseState(overrides: Partial<BloomState>): BloomState {
     probe: null,
     verdict: null,
     falsePositive: null,
-    inserted: ["a"],
+    insertedCount: 1,
     setBits: 2,
     fpRate: 0.0625,
     ...overrides,

@@ -54,8 +54,13 @@ export interface BloomState {
    * tell these apart, which is exactly the lesson.
    */
   readonly falsePositive: boolean | null;
-  /** Elements inserted so far, for context panels. */
-  readonly inserted: readonly string[];
+  /**
+   * How many distinct elements have been inserted so far. A scalar, not the
+   * element list: a Bloom filter stores no elements (that is exactly why false
+   * positives exist), so the emitted per-frame state must not carry them. The
+   * count is all the honest fp-rate estimate needs.
+   */
+  readonly insertedCount: number;
   /** Count of bits currently set to 1. */
   readonly setBits: number;
   /**
