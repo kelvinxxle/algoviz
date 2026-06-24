@@ -19,7 +19,7 @@ export function Footer() {
         </span>
       </div>
       <div className="flex items-center gap-md font-code-md text-[10px] text-on-surface-variant">
-        <span>MILESTONE: M0</span>
+        <span>MILESTONE: M1</span>
         <span>{APP_VERSION}</span>
       </div>
     </footer>

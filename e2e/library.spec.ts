@@ -39,14 +39,12 @@ test.describe("Topic Library landing", () => {
     await expect(page.getByTestId("stat-coming-soon")).toContainText("9");
   });
 
-  test("navigating the available card lands on a resolving topic page", async ({
+  test("navigating the available card lands on the dijkstra workbench", async ({
     page,
   }) => {
     await page.getByRole("link", { name: /Dijkstra's Shortest Path/i }).click();
     await expect(page).toHaveURL(/\/topics\/dijkstra$/);
-    await expect(page.getByTestId("topic-stub")).toContainText(
-      "Visualization coming in M1"
-    );
+    await expect(page.getByTestId("dijkstra-workbench")).toBeVisible();
   });
 
   test("coming-soon cards are not navigable", async ({ page }) => {
@@ -62,7 +60,7 @@ test.describe("Topic detail routing", () => {
   test("available topic responds 200, not a 404", async ({ page }) => {
     const response = await page.goto("/topics/dijkstra");
     expect(response?.status()).toBe(200);
-    await expect(page.getByTestId("topic-stub")).toBeVisible();
+    await expect(page.getByTestId("dijkstra-workbench")).toBeVisible();
   });
 
   test("an unknown topic slug returns 404", async ({ page }) => {
