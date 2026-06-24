@@ -4,7 +4,7 @@ Make invisible algorithms visible. AlgoViz is a small, curated library where eac
 intermediate-to-advanced algorithm is something you watch happen, then make your own by
 feeding it your own input.
 
-This repository currently delivers **M0: Foundation and app shell** — the project
+This repository currently delivers **M0: Foundation and app shell**, the project
 scaffold and the flat, browsable topic-library landing. Topic visualizations and the AI
 explainer arrive in later milestones.
 
