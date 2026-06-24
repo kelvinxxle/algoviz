@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import type { AlgorithmTopic, Step } from "@/engine/contract";
 import { defineTopic, type TopicRenderProps } from "@/engine/registry";
-import { TopicWorkbench } from "./TopicWorkbench";
+import { TopicWorkbench, SANDBOX_MAX_STEPS } from "./TopicWorkbench";
 
 interface FakeInput {
   readonly start: number;
@@ -107,7 +107,10 @@ describe("TopicWorkbench (generic shell)", () => {
     await user.type(box, "20");
     await user.click(screen.getByRole("button", { name: "Run visualization" }));
 
-    expect(run).toHaveBeenCalledWith({ start: 20 });
+    expect(run).toHaveBeenCalledWith(
+      { start: 20 },
+      { maxSteps: SANDBOX_MAX_STEPS }
+    );
     expect(screen.getByTestId("canvas-value")).toHaveTextContent("20");
     expect(screen.getByTestId("step-position")).toHaveTextContent("STEP 1 / 2");
   });
@@ -130,14 +133,41 @@ describe("TopicWorkbench (generic shell)", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it("surfaces per-frame counters and complexity in the metrics tab", async () => {
+  it("caps an oversized sandbox run and shows a notice instead of hanging", async () => {
     const user = userEvent.setup();
-    const mod = defineTopic(makeTopic(), FakeRenderer);
+    const hugeRun = (input: FakeInput): Step<FakeState>[] => {
+      if (input.start === 10) {
+        return [
+          {
+            state: { value: 10 },
+            narration: "Begin at 10",
+            highlights: [],
+            counters: { steps: 0 },
+            line: 1,
+            caption: "Start",
+          },
+        ];
+      }
+      return Array.from({ length: SANDBOX_MAX_STEPS + 1 }, (_, i) => ({
+        state: { value: i },
+        narration: `frame ${i}`,
+        highlights: [],
+        counters: { steps: i },
+        caption: "x",
+      }));
+    };
+    const mod = defineTopic(makeTopic(hugeRun), FakeRenderer);
     render(<TopicWorkbench topic={mod.topic} Renderer={mod.Renderer} />);
 
-    await user.click(screen.getByRole("button", { name: /metrics/i }));
-    const metrics = screen.getByTestId("counters-panel");
-    expect(within(metrics).getByText("STEPS")).toBeInTheDocument();
-    expect(within(metrics).getByText("O(n)")).toBeInTheDocument();
+    const box = screen.getByLabelText("Custom input");
+    await user.clear(box);
+    await user.type(box, "20");
+    await user.click(screen.getByRole("button", { name: "Run visualization" }));
+
+    expect(screen.getByTestId("sandbox-cap-notice")).toHaveTextContent(
+      `Capped at ${SANDBOX_MAX_STEPS}`
+    );
+    expect(screen.getByTestId("step-position")).toHaveTextContent("STEP 1 / 1");
+    expect(screen.getByTestId("canvas-value")).toHaveTextContent("10");
   });
 });

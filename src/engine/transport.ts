@@ -70,7 +70,7 @@ export function transportReducer(
       };
 
     case "play": {
-      if (state.stepCount === 0) return { ...state, playing: true, index: 0 };
+      if (state.stepCount === 0) return state;
       // Replaying from the end restarts from the beginning.
       const atEnd = state.index >= lastIndex(state.stepCount);
       return { ...state, playing: true, index: atEnd ? 0 : state.index };

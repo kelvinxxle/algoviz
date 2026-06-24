@@ -14,6 +14,14 @@ import { SandboxPanel } from "@/components/player/SandboxPanel";
 const SANDBOX_HINT =
   "Edit the input and run it through the same engine that drives the walkthrough.";
 
+/**
+ * Upper bound on frames a single run may produce before the workbench refuses
+ * to visualize it. Untrusted sandbox input flows through this shared choke
+ * point, so a large or dense graph cannot allocate an unbounded Step[] and
+ * freeze the UI. Generous enough for any realistic curated or sandbox graph.
+ */
+export const SANDBOX_MAX_STEPS = 5000;
+
 type Tab = "logic" | "metrics";
 
 /**
@@ -32,11 +40,14 @@ export function TopicWorkbench({
 }) {
   const [store] = useState(() => {
     const created = createPlayerStore();
-    created.getState().load(topic.run(topic.curatedInput));
+    created
+      .getState()
+      .load(topic.run(topic.curatedInput, { maxSteps: SANDBOX_MAX_STEPS }));
     return created;
   });
   const [input, setInput] = useState<unknown>(topic.curatedInput);
   const [tab, setTab] = useState<Tab>("logic");
+  const [capNotice, setCapNotice] = useState<string | null>(null);
 
   usePlayer(store);
 
@@ -49,8 +60,16 @@ export function TopicWorkbench({
   const total = steps.length;
 
   const runInput = (next: unknown) => {
+    const frames = topic.run(next, { maxSteps: SANDBOX_MAX_STEPS });
+    if (frames.length >= SANDBOX_MAX_STEPS) {
+      setCapNotice(
+        `Input too large to visualize. Capped at ${SANDBOX_MAX_STEPS} steps. Try a smaller graph.`
+      );
+      return;
+    }
+    setCapNotice(null);
     setInput(next);
-    store.getState().load(topic.run(next));
+    store.getState().load(frames);
   };
 
   return (
@@ -130,6 +149,15 @@ export function TopicWorkbench({
               onRun={runInput}
               hint={SANDBOX_HINT}
             />
+            {capNotice ? (
+              <p
+                data-testid="sandbox-cap-notice"
+                role="alert"
+                className="mt-sm border border-error/40 bg-error/10 px-sm py-xs font-code-md text-[11px] text-error"
+              >
+                {capNotice}
+              </p>
+            ) : null}
           </div>
 
           <div className="border-t border-outline-variant pt-md">

@@ -220,7 +220,6 @@ export function run(
 
   if (!capped()) {
     const path = reconstructPath(previous, input.source, input.target);
-    const reached = input.target ? distances[input.target] : null;
     const narration = describeOutcome(input, distances, path, show);
     const overrides: Array<[string, HighlightRole]> = [];
     if (path) {
@@ -229,7 +228,6 @@ export function run(
         overrides.push([`edge:${path[i]}-${path[i + 1]}`, "path"]);
       }
     }
-    void reached;
     emit({
       line: LINE.whileLoop,
       caption: "Done",

@@ -58,6 +58,12 @@ describe("transportReducer", () => {
     expect(paused.playing).toBe(false);
   });
 
+  it("play on an empty sequence is a no-op and never starts playing", () => {
+    const s = transportReducer(load(0), { type: "play" });
+    expect(s.playing).toBe(false);
+    expect(s.index).toBe(0);
+  });
+
   it("play at the last step restarts from the beginning", () => {
     const atEnd = { ...load(3), index: 2 };
     const s = transportReducer(atEnd, { type: "play" });
