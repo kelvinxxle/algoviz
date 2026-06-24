@@ -44,6 +44,7 @@ test.describe("Topic Library landing", () => {
   test("catalog stats match the rendered availability split", async ({
     page,
   }) => {
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
     const total = await page.locator(cardSelector).count();
     const available = await page.locator(availableSelector).count();
     const comingSoon = await page.locator(comingSoonSelector).count();
@@ -58,6 +59,7 @@ test.describe("Topic Library landing", () => {
   });
 
   test("every available card routes to a 200 workbench", async ({ page }) => {
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
     const available = page.locator(availableSelector);
     const count = await available.count();
     expect(count).toBeGreaterThanOrEqual(1);
@@ -73,6 +75,7 @@ test.describe("Topic Library landing", () => {
   test("every coming-soon card is non-navigable and its route 404s", async ({
     page,
   }) => {
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
     const comingSoon = page.locator(comingSoonSelector);
     const count = await comingSoon.count();
 

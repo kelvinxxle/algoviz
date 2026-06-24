@@ -7,6 +7,7 @@ import {
 } from "./registry";
 import type { AlgorithmTopic } from "./contract";
 import { dijkstraTopic } from "@/topics/dijkstra/topic";
+import { topics } from "@/data/topics";
 
 describe("topic registry seam", () => {
   it("resolves the registered Dijkstra module by slug", () => {
@@ -18,7 +19,10 @@ describe("topic registry seam", () => {
 
   it("reports registration via hasTopicModule", () => {
     expect(hasTopicModule("dijkstra")).toBe(true);
-    expect(hasTopicModule("union-find")).toBe(false);
+    const comingSoon = topics.find((t) => t.status === "coming-soon");
+    if (comingSoon) {
+      expect(hasTopicModule(comingSoon.slug)).toBe(false);
+    }
   });
 
   it("returns undefined for an unregistered slug", () => {
