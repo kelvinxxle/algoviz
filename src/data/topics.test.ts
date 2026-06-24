@@ -5,6 +5,7 @@ import {
   getAvailableTopic,
   type Topic,
 } from "./topics";
+import { hasTopicModule } from "@/engine/registry";
 
 const EXPECTED_TITLES = [
   "Dynamic Programming",
@@ -24,15 +25,19 @@ describe("topic registry", () => {
     expect(topics).toHaveLength(10);
   });
 
-  it("has exactly one available topic and it is dijkstra", () => {
-    const available = topics.filter((t) => t.status === "available");
-    expect(available).toHaveLength(1);
-    expect(available[0].slug).toBe("dijkstra");
+  it("keeps dijkstra available as the anchor topic", () => {
+    expect(getTopicBySlug("dijkstra")?.status).toBe("available");
   });
 
-  it("has exactly nine coming-soon topics", () => {
-    const locked = topics.filter((t) => t.status === "coming-soon");
-    expect(locked).toHaveLength(9);
+  it("marks a topic available if and only if a renderer module is registered for it", () => {
+    for (const t of topics) {
+      if (t.status === "available") {
+        expect(hasTopicModule(t.slug)).toBe(true);
+      } else {
+        expect(t.status).toBe("coming-soon");
+        expect(hasTopicModule(t.slug)).toBe(false);
+      }
+    }
   });
 
   it("splits into 5 canonical and 5 systems topics", () => {
@@ -88,7 +93,9 @@ describe("getAvailableTopic", () => {
   });
 
   it("returns undefined for a coming-soon topic", () => {
-    expect(getAvailableTopic("bloom-filters")).toBeUndefined();
+    const comingSoon = topics.find((t) => t.status === "coming-soon");
+    if (!comingSoon) return;
+    expect(getAvailableTopic(comingSoon.slug)).toBeUndefined();
   });
 
   it("returns undefined for an unknown slug", () => {
