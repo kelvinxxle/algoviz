@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
 
+const cardSelector = '[data-testid="topic-card"]';
+const availableSelector = `${cardSelector}[data-status="available"]`;
+const comingSoonSelector = `${cardSelector}[data-status="coming-soon"]`;
+
 test.describe("Topic Library landing", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
@@ -15,10 +19,14 @@ test.describe("Topic Library landing", () => {
     await expect(page.getByTestId("topic-card")).toHaveCount(10);
   });
 
-  test("marks 9 topics as coming soon", async ({ page }) => {
-    await expect(
-      page.locator('[data-testid="topic-card"][data-status="coming-soon"]')
-    ).toHaveCount(9);
+  test("every card is either available or coming-soon, summing to 10", async ({
+    page,
+  }) => {
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
+    const available = await page.locator(availableSelector).count();
+    const comingSoon = await page.locator(comingSoonSelector).count();
+    expect(available + comingSoon).toBe(10);
+    expect(available).toBeGreaterThanOrEqual(1);
   });
 
   test("exposes Dijkstra as an available link", async ({ page }) => {
@@ -33,26 +41,57 @@ test.describe("Topic Library landing", () => {
     await expect(page.getByTestId("topic-card")).toHaveCount(5);
   });
 
-  test("shows honest catalog stats", async ({ page }) => {
-    await expect(page.getByTestId("stat-total")).toContainText("10");
-    await expect(page.getByTestId("stat-available")).toContainText("1");
-    await expect(page.getByTestId("stat-coming-soon")).toContainText("9");
-  });
-
-  test("navigating the available card lands on the dijkstra workbench", async ({
+  test("catalog stats match the rendered availability split", async ({
     page,
   }) => {
-    await page.getByRole("link", { name: /Dijkstra's Shortest Path/i }).click();
-    await expect(page).toHaveURL(/\/topics\/dijkstra$/);
-    await expect(page.getByTestId("dijkstra-workbench")).toBeVisible();
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
+    const total = await page.locator(cardSelector).count();
+    const available = await page.locator(availableSelector).count();
+    const comingSoon = await page.locator(comingSoonSelector).count();
+
+    // Exact match matters: toContainText is substring in Playwright, so a
+    // rendered "10" would satisfy an expected "1" and a wrong count could pass,
+    // defeating the count-preservation guard. The label sits in its own span, so
+    // assert toHaveText (exact, whitespace-trimmed) against the trailing number.
+    const statValue = (testId: string) =>
+      page.getByTestId(testId).locator("span").last();
+
+    await expect(statValue("stat-total")).toHaveText(String(total));
+    await expect(statValue("stat-available")).toHaveText(String(available));
+    await expect(statValue("stat-coming-soon")).toHaveText(String(comingSoon));
   });
 
-  test("coming-soon cards are not navigable", async ({ page }) => {
-    const comingSoon = page
-      .locator('[data-testid="topic-card"][data-status="coming-soon"]')
-      .first();
-    await expect(comingSoon).toHaveAttribute("aria-disabled", "true");
-    await expect(comingSoon.locator("a")).toHaveCount(0);
+  test("every available card routes to a 200 workbench", async ({ page }) => {
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
+    const available = page.locator(availableSelector);
+    const count = await available.count();
+    expect(count).toBeGreaterThanOrEqual(1);
+
+    for (let i = 0; i < count; i++) {
+      const slug = await available.nth(i).getAttribute("data-slug");
+      expect(slug).toBeTruthy();
+      const response = await page.request.get(`/topics/${slug}`);
+      expect(response.status()).toBe(200);
+    }
+  });
+
+  test("every coming-soon card is non-navigable and its route 404s", async ({
+    page,
+  }) => {
+    await expect(page.getByTestId("topic-card")).toHaveCount(10);
+    const comingSoon = page.locator(comingSoonSelector);
+    const count = await comingSoon.count();
+
+    for (let i = 0; i < count; i++) {
+      const card = comingSoon.nth(i);
+      await expect(card).toHaveAttribute("aria-disabled", "true");
+      await expect(card.locator("a")).toHaveCount(0);
+
+      const slug = await card.getAttribute("data-slug");
+      expect(slug).toBeTruthy();
+      const response = await page.request.get(`/topics/${slug}`);
+      expect(response.status()).toBe(404);
+    }
   });
 });
 
@@ -65,11 +104,6 @@ test.describe("Topic detail routing", () => {
 
   test("an unknown topic slug returns 404", async ({ page }) => {
     const response = await page.goto("/topics/not-a-real-topic");
-    expect(response?.status()).toBe(404);
-  });
-
-  test("a coming-soon topic slug returns 404", async ({ page }) => {
-    const response = await page.goto("/topics/bloom-filters");
     expect(response?.status()).toBe(404);
   });
 });

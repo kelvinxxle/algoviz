@@ -59,6 +59,7 @@ export function TopicCard({ topic }: { topic: Topic }) {
         href={`/topics/${topic.slug}`}
         data-testid="topic-card"
         data-status={topic.status}
+        data-slug={topic.slug}
         className="topic-card group block transition-colors duration-150 hover:outline hover:outline-1 hover:outline-primary-container focus-visible:outline focus-visible:outline-1 focus-visible:outline-primary-container"
       >
         <CardBody topic={topic} />
@@ -70,6 +71,7 @@ export function TopicCard({ topic }: { topic: Topic }) {
     <div
       data-testid="topic-card"
       data-status={topic.status}
+      data-slug={topic.slug}
       aria-disabled="true"
       className="topic-card block opacity-60"
     >

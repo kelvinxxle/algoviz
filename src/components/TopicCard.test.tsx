@@ -59,4 +59,20 @@ describe("TopicCard", () => {
       "true"
     );
   });
+
+  it("exposes the slug as a data attribute on an available card", () => {
+    render(<TopicCard topic={availableTopic} />);
+    expect(screen.getByTestId("topic-card")).toHaveAttribute(
+      "data-slug",
+      "dijkstra"
+    );
+  });
+
+  it("exposes the slug as a data attribute on a coming-soon card", () => {
+    render(<TopicCard topic={lockedTopic} />);
+    expect(screen.getByTestId("topic-card")).toHaveAttribute(
+      "data-slug",
+      "bloom-filters"
+    );
+  });
 });
