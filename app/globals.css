@@ -38,6 +38,18 @@
   --color-on-error: 105 0 5;
   --color-error-container: 147 0 10;
   --color-on-error-container: 255 218 214;
+  --color-primary-fixed: 192 232 255;
+  --color-primary-fixed-dim: 123 209 250;
+  --color-on-primary-fixed: 0 30 43;
+  --color-on-primary-fixed-variant: 0 77 102;
+  --color-secondary-fixed: 121 249 206;
+  --color-secondary-fixed-dim: 90 220 179;
+  --color-on-secondary-fixed: 0 33 23;
+  --color-on-secondary-fixed-variant: 0 81 61;
+  --color-tertiary-fixed: 229 226 225;
+  --color-tertiary-fixed-dim: 201 198 197;
+  --color-on-tertiary-fixed: 28 27 27;
+  --color-on-tertiary-fixed-variant: 71 70 70;
   --color-background: 19 19 19;
   --color-on-background: 229 226 225;
   --color-surface-variant: 53 53 52;
