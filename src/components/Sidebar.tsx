@@ -1,3 +1,7 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { APP_VERSION } from "@/data/meta";
 
 const SECTIONS = [
@@ -24,6 +28,9 @@ const SECTIONS = [
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   return (
     <aside className="flex w-64 shrink-0 flex-col overflow-y-auto border-r border-outline-variant bg-surface-dim py-md">
       <div className="mb-xl px-md">
@@ -36,9 +43,14 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-xs px-sm">
-        <span
-          aria-current="page"
-          className="flex w-full items-center gap-md border-l-2 border-primary bg-surface-container-highest px-md py-sm text-left font-label-caps text-label-caps text-primary"
+        <Link
+          href="/"
+          aria-current={isHome ? "page" : undefined}
+          className={`flex w-full items-center gap-md border-l-2 px-md py-sm text-left font-label-caps text-label-caps transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-primary-container ${
+            isHome
+              ? "border-primary bg-surface-container-highest text-primary"
+              : "border-transparent text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+          }`}
         >
           <span
             aria-hidden="true"
@@ -47,7 +59,7 @@ export function Sidebar() {
             grid_view
           </span>
           <span>DASHBOARD</span>
-        </span>
+        </Link>
 
         {SECTIONS.map((section) => (
           <div key={section.label}>
