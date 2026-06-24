@@ -39,8 +39,9 @@ describe("TopicLibrary", () => {
     expect(systems).toHaveAttribute("aria-pressed", "false");
     await user.click(systems);
     expect(systems).toHaveAttribute("aria-pressed", "true");
-    expect(
-      screen.getByRole("button", { name: "ALL TOPICS" })
-    ).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "ALL TOPICS" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
   });
 });

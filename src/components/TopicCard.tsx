@@ -31,7 +31,10 @@ function CardBody({ topic }: { topic: Topic }) {
       <div className="mt-md flex items-end justify-between">
         {isLocked ? (
           <span className="flex items-center gap-1 font-label-caps text-label-caps uppercase tracking-widest text-outline">
-            <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
+            <span
+              aria-hidden="true"
+              className="material-symbols-outlined text-[14px]"
+            >
               lock
             </span>
             Coming Soon

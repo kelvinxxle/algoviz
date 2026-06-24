@@ -32,7 +32,10 @@ export function Sidebar() {
           aria-current="page"
           className="flex w-full items-center gap-md border-l-2 border-primary bg-surface-container-highest px-md py-sm text-left font-label-caps text-label-caps text-primary"
         >
-          <span aria-hidden="true" className="material-symbols-outlined text-[20px]">
+          <span
+            aria-hidden="true"
+            className="material-symbols-outlined text-[20px]"
+          >
             grid_view
           </span>
           <span>DASHBOARD</span>

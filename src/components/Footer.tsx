@@ -8,7 +8,10 @@ export function Footer() {
     <footer className="z-20 flex h-8 shrink-0 items-center justify-between border-t border-outline-variant bg-surface px-md">
       <div className="flex items-center gap-md">
         <span className="flex items-center gap-1 font-label-caps text-[10px] uppercase tracking-widest text-secondary">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-secondary" />
+          <span
+            aria-hidden="true"
+            className="h-2 w-2 rounded-full bg-secondary"
+          />
           Catalog Ready
         </span>
         <span className="font-code-md text-[10px] text-on-surface-variant opacity-60">

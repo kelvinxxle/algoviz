@@ -14,7 +14,10 @@ export function Header() {
         <label className="relative block">
           <span className="sr-only">Search the catalog</span>
           <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-outline">
-            <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+            <span
+              aria-hidden="true"
+              className="material-symbols-outlined text-[18px]"
+            >
               search
             </span>
           </span>
