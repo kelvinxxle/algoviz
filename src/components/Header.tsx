@@ -1,12 +1,18 @@
-export function Header() {
+export function Header({
+  title = "Topic Library",
+  subtitle = "Flat and browsable",
+}: {
+  title?: string;
+  subtitle?: string;
+} = {}) {
   return (
     <header className="z-20 flex h-12 shrink-0 items-center justify-between border-b border-outline-variant bg-surface px-lg">
       <div className="flex h-full items-center gap-xl">
         <span className="font-headline-md text-headline-md font-bold text-on-surface">
-          Topic Library
+          {title}
         </span>
         <span className="hidden font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant opacity-60 md:inline">
-          Flat and browsable
+          {subtitle}
         </span>
       </div>
 

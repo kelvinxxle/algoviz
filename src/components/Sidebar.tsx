@@ -4,8 +4,16 @@ const SECTIONS = [
   {
     label: "Reference",
     links: [
-      { icon: "description", text: "Product Brief", href: "/docs/prd.md" },
-      { icon: "palette", text: "Design System", href: "/docs/design" },
+      {
+        icon: "description",
+        text: "Product Brief",
+        href: "https://github.com/kelvinxxle/algoviz/blob/main/docs/prd.md",
+      },
+      {
+        icon: "palette",
+        text: "Design System",
+        href: "https://github.com/kelvinxxle/algoviz/tree/main/docs/design",
+      },
       {
         icon: "code",
         text: "Source",
@@ -52,6 +60,8 @@ export function Sidebar() {
               <a
                 key={link.text}
                 href={link.href}
+                target="_blank"
+                rel="noreferrer"
                 className="flex w-full items-center gap-md px-md py-sm text-left font-body-md text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
               >
                 <span

@@ -38,4 +38,40 @@ test.describe("Topic Library landing", () => {
     await expect(page.getByTestId("stat-available")).toContainText("1");
     await expect(page.getByTestId("stat-coming-soon")).toContainText("9");
   });
+
+  test("navigating the available card lands on a resolving topic page", async ({
+    page,
+  }) => {
+    await page.getByRole("link", { name: /Dijkstra's Shortest Path/i }).click();
+    await expect(page).toHaveURL(/\/topics\/dijkstra$/);
+    await expect(page.getByTestId("topic-stub")).toContainText(
+      "Visualization coming in M1"
+    );
+  });
+
+  test("coming-soon cards are not navigable", async ({ page }) => {
+    const comingSoon = page
+      .locator('[data-testid="topic-card"][data-status="coming-soon"]')
+      .first();
+    await expect(comingSoon).toHaveAttribute("aria-disabled", "true");
+    await expect(comingSoon.locator("a")).toHaveCount(0);
+  });
+});
+
+test.describe("Topic detail routing", () => {
+  test("available topic responds 200, not a 404", async ({ page }) => {
+    const response = await page.goto("/topics/dijkstra");
+    expect(response?.status()).toBe(200);
+    await expect(page.getByTestId("topic-stub")).toBeVisible();
+  });
+
+  test("an unknown topic slug returns 404", async ({ page }) => {
+    const response = await page.goto("/topics/not-a-real-topic");
+    expect(response?.status()).toBe(404);
+  });
+
+  test("a coming-soon topic slug returns 404", async ({ page }) => {
+    const response = await page.goto("/topics/bloom-filters");
+    expect(response?.status()).toBe(404);
+  });
 });

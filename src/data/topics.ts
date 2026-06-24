@@ -108,3 +108,8 @@ export const topics: Topic[] = [
 export function getTopicBySlug(slug: string): Topic | undefined {
   return topics.find((topic) => topic.slug === slug);
 }
+
+export function getAvailableTopic(slug: string): Topic | undefined {
+  const topic = getTopicBySlug(slug);
+  return topic?.status === "available" ? topic : undefined;
+}

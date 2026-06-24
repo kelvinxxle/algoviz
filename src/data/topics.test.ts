@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { topics, getTopicBySlug, type Topic } from "./topics";
+import {
+  topics,
+  getTopicBySlug,
+  getAvailableTopic,
+  type Topic,
+} from "./topics";
 
 const EXPECTED_TITLES = [
   "Dynamic Programming",
@@ -72,5 +77,21 @@ describe("getTopicBySlug", () => {
 
   it("returns undefined for an unknown slug", () => {
     expect(getTopicBySlug("does-not-exist")).toBeUndefined();
+  });
+});
+
+describe("getAvailableTopic", () => {
+  it("returns the topic when it is available", () => {
+    const topic = getAvailableTopic("dijkstra") as Topic;
+    expect(topic).toBeDefined();
+    expect(topic.slug).toBe("dijkstra");
+  });
+
+  it("returns undefined for a coming-soon topic", () => {
+    expect(getAvailableTopic("bloom-filters")).toBeUndefined();
+  });
+
+  it("returns undefined for an unknown slug", () => {
+    expect(getAvailableTopic("does-not-exist")).toBeUndefined();
   });
 });
