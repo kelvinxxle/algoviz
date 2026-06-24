@@ -14,11 +14,16 @@
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
 
+const utf8 = new TextEncoder();
+
 /** FNV-1a 32-bit hash as an unsigned integer in [0, 2^32). */
 export function fnv1a32(value: string): number {
   let hash = FNV_OFFSET_BASIS;
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
+  // Hash the UTF-8 bytes so this is true byte-wise FNV-1a for any input, not
+  // just ASCII where a UTF-16 code unit happens to equal its byte.
+  const bytes = utf8.encode(value);
+  for (let i = 0; i < bytes.length; i += 1) {
+    hash ^= bytes[i];
     // Multiply by the FNV prime in 32-bit space without overflowing doubles.
     hash = Math.imul(hash, FNV_PRIME);
   }

@@ -93,6 +93,14 @@ describe("consistent-hashing parseInput", () => {
     if (!result.ok) expect(result.error).toMatch(/leave/i);
   });
 
+  it("rejects leaving the only node so the ring is never left empty", () => {
+    const result = parseInput("node A\nkey k1\nleave A");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toMatch(/at least one node must remain/i);
+    }
+  });
+
   it("rejects more vnodes per node than ring slots", () => {
     const result = parseInput("ring: 2\nvnodes: 5\nnode A\nkey k1");
     expect(result.ok).toBe(false);

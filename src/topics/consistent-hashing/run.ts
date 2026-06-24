@@ -51,7 +51,9 @@ function inArc(
   toInclusive: number,
   pos: number
 ): boolean {
-  if (fromExclusive === toInclusive) return true;
+  // A zero-length arc (a duplicate ring position) owns nothing new: the vnode
+  // that sorts first at that position already owns it.
+  if (fromExclusive === toInclusive) return false;
   if (fromExclusive < toInclusive) {
     return pos > fromExclusive && pos <= toInclusive;
   }
@@ -295,6 +297,9 @@ export function run(
       const a = assignments.get(key)!;
       const previousOwner = a.owner;
       const newVnode = lookupOwner(a.pos);
+      // A key only "moves" when its owner actually changes. On a colliding ring
+      // the successor can resolve back to the same node; that is not a move.
+      if (newVnode.node === previousOwner) continue;
       a.owner = newVnode.node;
       a.ownerVnode = newVnode.label;
       counters.moves += 1;
@@ -362,14 +367,22 @@ function keysInNodeArcs(
   keys: readonly string[],
   assignments: Map<string, MutableAssignment>
 ): string[] {
+  const len = vnodes.length;
   const arcs: Array<{ from: number; to: number }> = [];
-  for (let i = 0; i < vnodes.length; i += 1) {
+  let ownsWholeRing = false;
+  for (let i = 0; i < len; i += 1) {
     if (vnodes[i].node !== node) continue;
-    const prev = vnodes[(i - 1 + vnodes.length) % vnodes.length];
+    const prevIndex = (i - 1 + len) % len;
+    // The node's vnode is the only one on the ring, so it owns every position.
+    if (prevIndex === i) {
+      ownsWholeRing = true;
+      continue;
+    }
+    const prev = vnodes[prevIndex];
     arcs.push({ from: prev.pos, to: vnodes[i].pos });
   }
   return keys.filter((key) => {
     const pos = assignments.get(key)!.pos;
-    return arcs.some((arc) => inArc(arc.from, arc.to, pos));
+    return ownsWholeRing || arcs.some((arc) => inArc(arc.from, arc.to, pos));
   });
 }

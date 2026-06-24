@@ -29,6 +29,16 @@ describe("fnv1a32", () => {
   it("is deterministic for the same input", () => {
     expect(fnv1a32("cache-node:7")).toBe(fnv1a32("cache-node:7"));
   });
+
+  it("hashes the UTF-8 bytes so non-ASCII input is true byte-wise FNV-1a", () => {
+    // Byte-wise UTF-8 FNV-1a vectors using explicit code points to avoid any
+    // editor normalization. "é" is U+00E9 -> bytes C3 A9, so a code-unit hash
+    // (charCodeAt) would diverge from the published byte-wise value. Pinning
+    // these keeps the FNV-1a spec claim honest for all input.
+    expect(fnv1a32("\u00e9")).toBe(0x1e9de8c1);
+    expect(fnv1a32("\uD83D\uDE42")).toBe(0x57a37a4b);
+    expect(fnv1a32("caf\u00e9")).toBe(0xa82b5049);
+  });
 });
 
 describe("hashRing", () => {

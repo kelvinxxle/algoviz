@@ -138,6 +138,12 @@ export function parseInput(raw: string): ParseResult<ConsistentHashingInput> {
         error: `Cannot leave "${change.node}": it is not a node`,
       };
     }
+    if (change.op === "leave" && nodes.length <= 1) {
+      return {
+        ok: false,
+        error: `Cannot leave "${change.node}": at least one node must remain on the ring`,
+      };
+    }
   }
 
   const value: ConsistentHashingInput = {

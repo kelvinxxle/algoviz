@@ -6,6 +6,15 @@ import type { ConsistentHashingInput } from "./types";
 
 const last = <T>(arr: readonly T[]): T => arr[arr.length - 1];
 
+/** Deterministic LCG so the property test runs identically every time. */
+function makeRng(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+}
+
 /**
  * Independent reference: assign every key by a linear clockwise scan over the
  * sorted vnodes. The hash is the spec; this brute-force scan does not use the
@@ -127,6 +136,62 @@ describe("consistent-hashing run", () => {
     const got: Record<string, string> = {};
     for (const k of final.state.keys) got[k.key] = k.owner!;
     expect(got).toEqual(expected);
+  });
+
+  it("does not report a key as moved when its owner is unchanged on a colliding ring", () => {
+    // ringSize 1 forces every label to position 0, so the joining node's vnode
+    // collides with the existing node's and steals nothing. No key moves.
+    const input: ConsistentHashingInput = {
+      ringSize: 1,
+      vnodesPerNode: 1,
+      nodes: ["A"],
+      keys: ["k1"],
+      change: { op: "join", node: "D" },
+    };
+    const steps = run(input);
+    const final = last(steps);
+    expect(final.counters.moves).toBe(0);
+    expect(final.state.movedKeys).toHaveLength(0);
+    expect(final.state.keys.find((k) => k.key === "k1")?.owner).toBe("A");
+    // No frame may claim a key moved from one node back to that same node.
+    for (const step of steps) {
+      expect(step.narration).not.toMatch(/from (\w+) to \1\b/);
+    }
+  });
+
+  it("oracle: moves counts exactly the keys whose owner changed on join (random rings, collisions included)", () => {
+    const rng = makeRng(424242);
+    for (let trial = 0; trial < 200; trial += 1) {
+      // Small ring sizes (including 1) deliberately force position collisions.
+      const ringSize = 1 + Math.floor(rng() * 64);
+      const vnodesPerNode = 1 + Math.floor(rng() * 3);
+      const nodeCount = 1 + Math.floor(rng() * 4);
+      const nodes = Array.from({ length: nodeCount }, (_, i) => `N${i}`);
+      const keyCount = 1 + Math.floor(rng() * 8);
+      const keys = Array.from({ length: keyCount }, (_, i) => `k${i}`);
+      const joinNode = "zzz";
+      const input: ConsistentHashingInput = {
+        ringSize,
+        vnodesPerNode,
+        nodes,
+        keys,
+        change: { op: "join", node: joinNode },
+      };
+      const before = referenceOwners(nodes, input);
+      const after = referenceOwners([...nodes, joinNode], input);
+      const actualChanges = keys.filter((k) => before[k] !== after[k]);
+      const final = last(run(input));
+      expect(final.counters.moves).toBe(actualChanges.length);
+      expect([...final.state.movedKeys].sort()).toEqual(
+        [...actualChanges].sort()
+      );
+      for (const moved of final.state.movedKeys) {
+        expect(before[moved]).not.toBe(after[moved]);
+      }
+      const got: Record<string, string> = {};
+      for (const k of final.state.keys) got[k.key] = k.owner!;
+      expect(got).toEqual(after);
+    }
   });
 
   it("moves only keys previously owned by the leaving node", () => {
