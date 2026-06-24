@@ -47,15 +47,16 @@ Next.js App Router with React and TypeScript, Tailwind with the Deep Midnight to
 
 ## Definition of done (every PR)
 
-All of these must pass fresh before a PR is opened, and they also run in CI:
+All of these must pass fresh before a PR is opened, and the same checks run in CI:
 
 - `npm run format:check`
 - `npm run lint`
-- `npx tsc --noEmit`
+- `npm run typecheck`
 - `npm test` (Vitest, with new tests for new behavior)
 - `npm run build`
-- Playwright end-to-end tests
-- `npm audit` (0 vulnerabilities)
+- `npm run test:e2e` (Playwright)
+
+CI also runs `npm audit --audit-level=high` as a non-blocking step. Keep the dependency tree clean; the project has held 0 vulnerabilities and new PRs should not regress that.
 
 Work test-first. Each PR closes its milestone issue with `Closes #N` and is rebased on the latest `main` before review.
 
