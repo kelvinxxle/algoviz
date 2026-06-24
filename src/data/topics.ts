@@ -62,7 +62,7 @@ export const topics: Topic[] = [
     slug: "bloom-filters",
     title: "Bloom Filters",
     flavor: "systems",
-    status: "coming-soon",
+    status: "available",
     blurb: "Probabilistic membership: definitely no, maybe yes.",
     complexity: "O(k)",
     icon: "blur_on",
