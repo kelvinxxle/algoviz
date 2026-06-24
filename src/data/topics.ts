@@ -53,7 +53,7 @@ export const topics: Topic[] = [
     slug: "tries",
     title: "Tries",
     flavor: "canonical",
-    status: "coming-soon",
+    status: "available",
     blurb: "Prefix trees behind autocomplete.",
     complexity: "O(L)",
     icon: "text_fields",

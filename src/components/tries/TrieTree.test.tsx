@@ -1,0 +1,118 @@
+import { describe, it, expect } from "vitest";
+import { render } from "@testing-library/react";
+import { TrieTree } from "./TrieTree";
+import type { PositionedTrie } from "@/topics/tries/layout";
+import type { TrieState } from "@/topics/tries/types";
+import type { Highlight } from "@/engine/contract";
+
+// Full layout for the word "ab": root, a, ab.
+const layout: PositionedTrie = {
+  nodes: [
+    { id: "", char: "", parent: null, depth: 0, x: 400, y: 60 },
+    { id: "a", char: "a", parent: "", depth: 1, x: 400, y: 300 },
+    { id: "ab", char: "b", parent: "a", depth: 2, x: 400, y: 540 },
+  ],
+};
+
+// A frame partway through inserting "ab": only root and "a" exist so far.
+const partial: TrieState = {
+  nodes: [
+    { id: "", char: "", parent: null, depth: 0, isEnd: false },
+    { id: "a", char: "a", parent: "", depth: 1, isEnd: false },
+  ],
+  cursor: "a",
+  activePath: ["", "a"],
+  op: { kind: "insert", word: "ab" },
+  matched: 1,
+  falloff: null,
+  outcome: null,
+  phase: "insert",
+};
+
+const highlights: Highlight[] = [
+  { target: "node:", role: "path" },
+  { target: "node:a", role: "active" },
+  { target: "edge:a", role: "active" },
+];
+
+describe("TrieTree", () => {
+  it("renders only the nodes present in the current state, not the full layout", () => {
+    const { container } = render(
+      <TrieTree layout={layout} state={partial} highlights={highlights} />
+    );
+    expect(container.querySelectorAll("[data-node]")).toHaveLength(2);
+    expect(container.querySelector('[data-node="ab"]')).toBeNull();
+  });
+
+  it("applies highlight roles to nodes and edges", () => {
+    const { container } = render(
+      <TrieTree layout={layout} state={partial} highlights={highlights} />
+    );
+    expect(container.querySelector('[data-node="a"]')).toHaveAttribute(
+      "data-role",
+      "active"
+    );
+    expect(container.querySelector('[data-edge="a"]')).toHaveAttribute(
+      "data-role",
+      "active"
+    );
+  });
+
+  it("marks word-end nodes so a stored word is visible", () => {
+    const stored: TrieState = {
+      ...partial,
+      nodes: [
+        { id: "", char: "", parent: null, depth: 0, isEnd: false },
+        { id: "a", char: "a", parent: "", depth: 1, isEnd: true },
+      ],
+    };
+    const { container } = render(
+      <TrieTree layout={layout} state={stored} highlights={[]} />
+    );
+    expect(container.querySelector('[data-node="a"]')).toHaveAttribute(
+      "data-end",
+      "true"
+    );
+  });
+
+  it("renders the edge character label", () => {
+    const { container } = render(
+      <TrieTree layout={layout} state={partial} highlights={highlights} />
+    );
+    expect(container.querySelector('[data-char="a"]')).toHaveTextContent("a");
+  });
+
+  it("draws a falloff ghost for a missing character", () => {
+    const missed: TrieState = {
+      ...partial,
+      op: { kind: "search", word: "ax" },
+      cursor: "a",
+      falloff: { parent: "a", char: "x" },
+      outcome: "miss-prefix",
+      phase: "search",
+    };
+    const { container } = render(
+      <TrieTree layout={layout} state={missed} highlights={highlights} />
+    );
+    const ghost = container.querySelector('[data-testid="trie-falloff"]');
+    expect(ghost).not.toBeNull();
+    expect(ghost).toHaveTextContent("x");
+  });
+
+  it("does not draw a falloff ghost when there is no falloff", () => {
+    const { container } = render(
+      <TrieTree layout={layout} state={partial} highlights={highlights} />
+    );
+    expect(container.querySelector('[data-testid="trie-falloff"]')).toBeNull();
+  });
+
+  it("defaults a node with no highlight to an unvisited role", () => {
+    const { container } = render(
+      <TrieTree layout={layout} state={partial} highlights={[]} />
+    );
+    expect(container.querySelector('[data-node="a"]')).toHaveAttribute(
+      "data-role",
+      "unvisited"
+    );
+  });
+});
