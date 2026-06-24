@@ -30,9 +30,17 @@ describe("CatalogStats", () => {
   it("counts the available and coming-soon split from its topics prop", () => {
     render(<CatalogStats topics={fixture} />);
 
-    expect(screen.getByTestId("stat-total")).toHaveTextContent("5");
-    expect(screen.getByTestId("stat-available")).toHaveTextContent("3");
-    expect(screen.getByTestId("stat-coming-soon")).toHaveTextContent("2");
+    // Exact equality on the rendered number matters: a substring assertion like
+    // toHaveTextContent("5") also passes for "15", so a wrong count could slip
+    // through and defeat the count-preservation guard this suite exists for. The
+    // label and the number live in separate spans, so assert against the number
+    // node (the stat element's last child) with strict equality.
+    const statValue = (testId: string): string | null =>
+      screen.getByTestId(testId).lastElementChild?.textContent ?? null;
+
+    expect(statValue("stat-total")).toBe("5");
+    expect(statValue("stat-available")).toBe("3");
+    expect(statValue("stat-coming-soon")).toBe("2");
   });
 
   it("labels each stat", () => {

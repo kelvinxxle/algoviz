@@ -49,13 +49,16 @@ test.describe("Topic Library landing", () => {
     const available = await page.locator(availableSelector).count();
     const comingSoon = await page.locator(comingSoonSelector).count();
 
-    await expect(page.getByTestId("stat-total")).toContainText(String(total));
-    await expect(page.getByTestId("stat-available")).toContainText(
-      String(available)
-    );
-    await expect(page.getByTestId("stat-coming-soon")).toContainText(
-      String(comingSoon)
-    );
+    // Exact match matters: toContainText is substring in Playwright, so a
+    // rendered "10" would satisfy an expected "1" and a wrong count could pass,
+    // defeating the count-preservation guard. The label sits in its own span, so
+    // assert toHaveText (exact, whitespace-trimmed) against the trailing number.
+    const statValue = (testId: string) =>
+      page.getByTestId(testId).locator("span").last();
+
+    await expect(statValue("stat-total")).toHaveText(String(total));
+    await expect(statValue("stat-available")).toHaveText(String(available));
+    await expect(statValue("stat-coming-soon")).toHaveText(String(comingSoon));
   });
 
   test("every available card routes to a 200 workbench", async ({ page }) => {
