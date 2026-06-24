@@ -188,6 +188,42 @@ describe("rate-limiting run", () => {
     ).toThrow(/cost/i);
   });
 
+  it("accrues fractional tokens without flooring (real-valued bucket)", () => {
+    // capacity 5, refill 0.5/unit, cost 1, empty start.
+    //   R1 t0: tokens 0      -> reject
+    //   R2 t1: +0.5 -> 0.5   -> reject (0.5 < 1)
+    //   R3 t2: +0.5 -> 1.0   -> allow  -> 0.0
+    //   R4 t3: +0.5 -> 0.5   -> reject
+    // Final tokens 0.5 is decisively fractional: a floored bucket can never
+    // hold it. allowed=1, rejected=3, processed=4, refilled=1.5.
+    const fractional: RateLimitInput = {
+      capacity: 5,
+      refillRate: 0.5,
+      cost: 1,
+      startTokens: 0,
+      requests: [
+        { id: "R1", t: 0 },
+        { id: "R2", t: 1 },
+        { id: "R3", t: 2 },
+        { id: "R4", t: 3 },
+      ],
+    };
+    const final = last(run(fractional));
+    expect(final.state.tokens).toBe(0.5);
+    expect(final.state.statuses).toEqual([
+      "rejected",
+      "rejected",
+      "allowed",
+      "rejected",
+    ]);
+    expect(final.counters).toMatchObject({
+      allowed: 1,
+      rejected: 3,
+      processed: 4,
+      refilled: 1.5,
+    });
+  });
+
   it("handles an empty timeline with just an init and done frame", () => {
     const empty = run({ capacity: 2, refillRate: 1, cost: 1, requests: [] });
     expect(empty.map((s) => s.state.phase)).toEqual(["init", "done"]);

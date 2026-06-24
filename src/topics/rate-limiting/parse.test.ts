@@ -98,6 +98,35 @@ describe("rate-limiting parseInput", () => {
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) expect(parsed.error).toMatch(/capacity/i);
   });
+
+  it("rejects a non-positive cost", () => {
+    const parsed = parseInput("capacity: 2\nrefill: 1\ncost: 0\n0 A");
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.error).toMatch(/cost/i);
+  });
+
+  it("rejects a negative refill rate", () => {
+    const parsed = parseInput("capacity: 2\nrefill: -1\n0 A");
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.error).toMatch(/refill/i);
+  });
+
+  it("accepts a zero refill rate as a no-replenishment bucket", () => {
+    const parsed = parseInput("capacity: 2\nrefill: 0\n0 A");
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) expect(parsed.value.refillRate).toBe(0);
+  });
+
+  it("accepts fractional capacity, refill, cost, and time without flooring", () => {
+    const parsed = parseInput("capacity: 2.5\nrefill: 0.5\ncost: 0.25\n1.5 A");
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.value.capacity).toBe(2.5);
+      expect(parsed.value.refillRate).toBe(0.5);
+      expect(parsed.value.cost).toBe(0.25);
+      expect(parsed.value.requests).toEqual([{ id: "A", t: 1.5 }]);
+    }
+  });
 });
 
 describe("rate-limiting serializeInput", () => {

@@ -13,6 +13,14 @@ import type { RateLimitInput, RateRequest } from "./types";
  *
  * Blank lines and `#` comments are ignored. Requests may appear in any order;
  * `run` replays them in stable timestamp order.
+ *
+ * Numbers are real-valued, not floored: capacity, refill rate, cost, and request
+ * times may be fractional and the bucket tracks fractional token levels
+ * consistently (a request is allowed when `tokens >= cost`). `run` rounds only to
+ * shed floating-point dust, so output stays deterministic. Required `capacity`
+ * must be positive and `cost` must be positive; `refill` must be zero or
+ * positive, where a zero rate models a fixed quota that never replenishes.
+ * Negative times are rejected: requests arrive at t >= 0.
  */
 export function parseInput(raw: string): ParseResult<RateLimitInput> {
   const lines = raw.split("\n");
