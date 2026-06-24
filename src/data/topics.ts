@@ -71,7 +71,7 @@ export const topics: Topic[] = [
     slug: "consistent-hashing",
     title: "Consistent Hashing",
     flavor: "systems",
-    status: "coming-soon",
+    status: "available",
     blurb: "How distributed caches and shards avoid reshuffling.",
     complexity: "O(log n)",
     icon: "published_with_changes",
