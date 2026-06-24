@@ -40,12 +40,20 @@ export interface SearchTreeNode {
 }
 
 /**
- * Full state snapshot for one frame. `nodes` holds every node discovered so far;
- * the renderer reads it for structure and labels and reads the step's highlights
- * for emphasis. `currentPlacement` is the set of queens on the board this frame.
+ * Full state snapshot for one frame. `nodes` holds every node discovered so far
+ * for the visualization; it is search HISTORY, not the algorithm's working set.
+ * The algorithm's live memory is only `currentPlacement` (one column per row),
+ * which is O(N); it discards each branch on backtrack. The cumulative tree is
+ * retained solely so scrubbing renders the full search story from this snapshot
+ * alone, per the self-contained-Step contract. The renderer reads `nodes` for
+ * structure and labels and reads the step's highlights for emphasis.
  */
 export interface BacktrackingState {
   readonly n: number;
+  /**
+   * Every node discovered so far, for drawing the search tree (history). This is
+   * a visualization artifact, not algorithmic space: see the interface note.
+   */
   readonly nodes: readonly SearchTreeNode[];
   /** Node in focus this frame, if any. */
   readonly activeId: string | null;

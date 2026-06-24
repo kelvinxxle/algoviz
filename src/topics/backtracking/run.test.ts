@@ -15,6 +15,22 @@ describe("backtracking run (N-Queens)", () => {
     expect(init.line).toBe(1);
   });
 
+  it("explains in narration that the working set is O(N) while the tree is search history", () => {
+    const init = run(board(4))[0];
+    // The on-screen tree accumulates every explored node, but the algorithm's
+    // live memory is only the current path. The start narration must make that
+    // distinction honest so the O(N) space claim does not contradict the tree.
+    expect(init.narration).toContain("O(N)");
+    expect(init.narration.toLowerCase()).toContain("history");
+    expect(init.narration.toLowerCase()).toContain("discard");
+  });
+
+  it("narrates a backtrack as discarding the branch, not retaining it", () => {
+    const backtrack = run(board(2)).find((s) => s.caption === "Backtrack R0");
+    expect(backtrack).toBeDefined();
+    expect(backtrack?.narration.toLowerCase()).toContain("discard");
+  });
+
   it("finds the first 4-queens solution [1,3,0,2] and stops there", () => {
     const final = last(run(board(4)));
     expect(final.state.solution).toEqual([1, 3, 0, 2]);

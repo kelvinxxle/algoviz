@@ -57,10 +57,12 @@ function statusRole(status: NodeStatus): HighlightRole {
  *
  * A depth-first search places one queen per row, trying columns in increasing
  * order and pruning any placement that conflicts with a queen already on the
- * board. The search stops at the first complete solution. Every column attempt
- * becomes a node in the recursion tree; nodes accumulate across frames so the
- * full search history is scrubbable. Node positions are render-only and are not
- * produced here.
+ * board. The search stops at the first complete solution. The algorithm's
+ * working memory is only the current path of placed columns (O(N)); it discards
+ * each branch on backtrack. Every column attempt is also recorded as a node so
+ * the visualization can show the full search history; these accumulated nodes
+ * are render history, not algorithmic space. Node positions are render-only and
+ * are not produced here.
  */
 export function run(
   input: BacktrackingInput,
@@ -139,7 +141,7 @@ export function run(
     line: LINE.start,
     caption: "Start",
     activeId: ROOT_ID,
-    narration: `Start the search with an empty ${n} by ${n} board. Place one queen per row, beginning at row 0.`,
+    narration: `Start the search with an empty ${n} by ${n} board. Place one queen per row, beginning at row 0. The algorithm only holds the current path of placed queens, so its working memory stays O(N), one column per row; the tree below is the search history, and each branch is discarded when the search backtracks.`,
   });
 
   // Depth-first search written as an explicit recursion so frame emission stays
@@ -226,7 +228,7 @@ export function run(
           line: LINE.backtrack,
           caption: `Backtrack R${row}`,
           activeId: id,
-          narration: `No column worked below row ${row}. Remove the queen at column ${col} and try the next option.`,
+          narration: `No column worked below row ${row}. Remove the queen at column ${col}, discarding this branch and freeing row ${row}, then try the next column. The board shrinks back to ${row} placed ${row === 1 ? "queen" : "queens"}, so working memory stays O(N).`,
         })
       ) {
         return false;
