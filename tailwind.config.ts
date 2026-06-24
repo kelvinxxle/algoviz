@@ -1,0 +1,137 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  darkMode: "class",
+  content: ["./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        "surface-dim": "rgb(var(--color-surface-dim) / <alpha-value>)",
+        "surface-bright": "rgb(var(--color-surface-bright) / <alpha-value>)",
+        "surface-container-lowest":
+          "rgb(var(--color-surface-container-lowest) / <alpha-value>)",
+        "surface-container-low":
+          "rgb(var(--color-surface-container-low) / <alpha-value>)",
+        "surface-container":
+          "rgb(var(--color-surface-container) / <alpha-value>)",
+        "surface-container-high":
+          "rgb(var(--color-surface-container-high) / <alpha-value>)",
+        "surface-container-highest":
+          "rgb(var(--color-surface-container-highest) / <alpha-value>)",
+        "on-surface": "rgb(var(--color-on-surface) / <alpha-value>)",
+        "on-surface-variant":
+          "rgb(var(--color-on-surface-variant) / <alpha-value>)",
+        "inverse-surface": "rgb(var(--color-inverse-surface) / <alpha-value>)",
+        "inverse-on-surface":
+          "rgb(var(--color-inverse-on-surface) / <alpha-value>)",
+        outline: "rgb(var(--color-outline) / <alpha-value>)",
+        "outline-variant": "rgb(var(--color-outline-variant) / <alpha-value>)",
+        "surface-tint": "rgb(var(--color-surface-tint) / <alpha-value>)",
+        primary: "rgb(var(--color-primary) / <alpha-value>)",
+        "on-primary": "rgb(var(--color-on-primary) / <alpha-value>)",
+        "primary-container":
+          "rgb(var(--color-primary-container) / <alpha-value>)",
+        "on-primary-container":
+          "rgb(var(--color-on-primary-container) / <alpha-value>)",
+        "inverse-primary": "rgb(var(--color-inverse-primary) / <alpha-value>)",
+        secondary: "rgb(var(--color-secondary) / <alpha-value>)",
+        "on-secondary": "rgb(var(--color-on-secondary) / <alpha-value>)",
+        "secondary-container":
+          "rgb(var(--color-secondary-container) / <alpha-value>)",
+        "on-secondary-container":
+          "rgb(var(--color-on-secondary-container) / <alpha-value>)",
+        tertiary: "rgb(var(--color-tertiary) / <alpha-value>)",
+        "on-tertiary": "rgb(var(--color-on-tertiary) / <alpha-value>)",
+        "tertiary-container":
+          "rgb(var(--color-tertiary-container) / <alpha-value>)",
+        "on-tertiary-container":
+          "rgb(var(--color-on-tertiary-container) / <alpha-value>)",
+        error: "rgb(var(--color-error) / <alpha-value>)",
+        "on-error": "rgb(var(--color-on-error) / <alpha-value>)",
+        "error-container": "rgb(var(--color-error-container) / <alpha-value>)",
+        "on-error-container":
+          "rgb(var(--color-on-error-container) / <alpha-value>)",
+        "primary-fixed": "rgb(var(--color-primary-fixed) / <alpha-value>)",
+        "primary-fixed-dim":
+          "rgb(var(--color-primary-fixed-dim) / <alpha-value>)",
+        "on-primary-fixed":
+          "rgb(var(--color-on-primary-fixed) / <alpha-value>)",
+        "on-primary-fixed-variant":
+          "rgb(var(--color-on-primary-fixed-variant) / <alpha-value>)",
+        "secondary-fixed": "rgb(var(--color-secondary-fixed) / <alpha-value>)",
+        "secondary-fixed-dim":
+          "rgb(var(--color-secondary-fixed-dim) / <alpha-value>)",
+        "on-secondary-fixed":
+          "rgb(var(--color-on-secondary-fixed) / <alpha-value>)",
+        "on-secondary-fixed-variant":
+          "rgb(var(--color-on-secondary-fixed-variant) / <alpha-value>)",
+        "tertiary-fixed": "rgb(var(--color-tertiary-fixed) / <alpha-value>)",
+        "tertiary-fixed-dim":
+          "rgb(var(--color-tertiary-fixed-dim) / <alpha-value>)",
+        "on-tertiary-fixed":
+          "rgb(var(--color-on-tertiary-fixed) / <alpha-value>)",
+        "on-tertiary-fixed-variant":
+          "rgb(var(--color-on-tertiary-fixed-variant) / <alpha-value>)",
+        background: "rgb(var(--color-background) / <alpha-value>)",
+        "on-background": "rgb(var(--color-on-background) / <alpha-value>)",
+        "surface-variant": "rgb(var(--color-surface-variant) / <alpha-value>)",
+        base: "rgb(var(--color-base) / <alpha-value>)",
+        "grid-line": "rgb(var(--color-grid-line) / <alpha-value>)",
+        field: "rgb(var(--color-field) / <alpha-value>)",
+        "field-border": "rgb(var(--color-field-border) / <alpha-value>)",
+      },
+      borderRadius: {
+        DEFAULT: "0px",
+        none: "0px",
+        sm: "0px",
+        md: "0px",
+        lg: "0px",
+        xl: "0px",
+        "2xl": "0px",
+        full: "9999px",
+      },
+      spacing: {
+        unit: "4px",
+        xs: "4px",
+        sm: "8px",
+        md: "16px",
+        lg: "24px",
+        xl: "32px",
+        gutter: "1px",
+        "panel-margin": "12px",
+      },
+      fontFamily: {
+        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        display: ["var(--font-geist-sans)"],
+        "headline-lg": ["var(--font-geist-sans)"],
+        "headline-md": ["var(--font-geist-sans)"],
+        "body-lg": ["var(--font-geist-sans)"],
+        "body-md": ["var(--font-geist-sans)"],
+        "code-lg": ["var(--font-mono)"],
+        "code-md": ["var(--font-mono)"],
+        "label-caps": ["var(--font-mono)"],
+      },
+      fontSize: {
+        display: [
+          "32px",
+          { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" },
+        ],
+        "headline-lg": ["24px", { lineHeight: "1.3", fontWeight: "500" }],
+        "headline-md": ["20px", { lineHeight: "1.4", fontWeight: "500" }],
+        "body-lg": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
+        "body-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }],
+        "code-lg": ["14px", { lineHeight: "1.7", fontWeight: "400" }],
+        "code-md": ["13px", { lineHeight: "1.6", fontWeight: "400" }],
+        "label-caps": [
+          "11px",
+          { lineHeight: "1.2", letterSpacing: "0.05em", fontWeight: "600" },
+        ],
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

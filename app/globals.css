@@ -1,0 +1,115 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Deep Midnight palette tokens */
+  --color-surface: 19 19 19;
+  --color-surface-dim: 19 19 19;
+  --color-surface-bright: 57 57 57;
+  --color-surface-container-lowest: 14 14 14;
+  --color-surface-container-low: 28 27 27;
+  --color-surface-container: 32 31 31;
+  --color-surface-container-high: 42 42 42;
+  --color-surface-container-highest: 53 53 52;
+  --color-on-surface: 229 226 225;
+  --color-on-surface-variant: 190 200 206;
+  --color-inverse-surface: 229 226 225;
+  --color-inverse-on-surface: 49 48 48;
+  --color-outline: 137 146 152;
+  --color-outline-variant: 63 72 78;
+  --color-surface-tint: 123 209 250;
+  --color-primary: 197 234 255;
+  --color-on-primary: 0 53 71;
+  --color-primary-container: 125 211 252;
+  --color-on-primary-container: 0 91 120;
+  --color-inverse-primary: 0 102 134;
+  --color-secondary: 90 220 179;
+  --color-on-secondary: 0 56 41;
+  --color-secondary-container: 0 167 130;
+  --color-on-secondary-container: 0 51 38;
+  --color-tertiary: 231 228 227;
+  --color-on-tertiary: 49 48 48;
+  --color-tertiary-container: 203 200 199;
+  --color-on-tertiary-container: 85 84 83;
+  --color-error: 255 180 171;
+  --color-on-error: 105 0 5;
+  --color-error-container: 147 0 10;
+  --color-on-error-container: 255 218 214;
+  --color-primary-fixed: 192 232 255;
+  --color-primary-fixed-dim: 123 209 250;
+  --color-on-primary-fixed: 0 30 43;
+  --color-on-primary-fixed-variant: 0 77 102;
+  --color-secondary-fixed: 121 249 206;
+  --color-secondary-fixed-dim: 90 220 179;
+  --color-on-secondary-fixed: 0 33 23;
+  --color-on-secondary-fixed-variant: 0 81 61;
+  --color-tertiary-fixed: 229 226 225;
+  --color-tertiary-fixed-dim: 201 198 197;
+  --color-on-tertiary-fixed: 28 27 27;
+  --color-on-tertiary-fixed-variant: 71 70 70;
+  --color-background: 19 19 19;
+  --color-on-background: 229 226 225;
+  --color-surface-variant: 53 53 52;
+
+  /* Literal structural colors from the mockup */
+  --color-base: 5 5 5;
+  --color-grid-line: 26 26 26;
+  --color-field: 5 5 5;
+  --color-field-border: 38 38 38;
+  --color-scrollbar-thumb: 51 51 51;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: rgb(var(--color-base));
+  color: rgb(var(--color-on-surface));
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Minimalist 4px scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--color-scrollbar-thumb));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--color-primary-container));
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
