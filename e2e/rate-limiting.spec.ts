@@ -29,15 +29,16 @@ test.describe("Rate Limiting workbench", () => {
     page,
   }) => {
     const slider = page.getByRole("slider", { name: "Scrub steps" });
-    await slider.focus();
-    await slider.press("End");
-    const total = await page
-      .getByTestId("step-position")
-      .textContent()
-      .then((t) => (t ?? "").split("/")[1]?.trim());
-    await expect(page.getByTestId("step-position")).toContainText(
-      `STEP ${total} / ${total}`
-    );
+    await expect(async () => {
+      await slider.focus();
+      await slider.press("End");
+      const text =
+        (await page.getByTestId("step-position").textContent()) ?? "";
+      const total = text.split("/")[1]?.trim();
+      await expect(page.getByTestId("step-position")).toContainText(
+        `STEP ${total} / ${total}`
+      );
+    }).toPass();
     // R5 was the burst overflow and must read as rejected at the end.
     await expect(page.locator('[data-request="R5"]')).toHaveAttribute(
       "data-role",

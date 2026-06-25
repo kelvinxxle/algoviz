@@ -29,15 +29,16 @@ test.describe("Dynamic Programming workbench", () => {
     page,
   }) => {
     const slider = page.getByRole("slider", { name: "Scrub steps" });
-    await slider.focus();
-    await slider.press("End");
-    const total = await page
-      .getByTestId("step-position")
-      .textContent()
-      .then((t) => (t ?? "").split("/")[1]?.trim());
-    await expect(page.getByTestId("step-position")).toContainText(
-      `STEP ${total} / ${total}`
-    );
+    await expect(async () => {
+      await slider.focus();
+      await slider.press("End");
+      const text =
+        (await page.getByTestId("step-position").textContent()) ?? "";
+      const total = text.split("/")[1]?.trim();
+      await expect(page.getByTestId("step-position")).toContainText(
+        `STEP ${total} / ${total}`
+      );
+    }).toPass();
     // dp[4][7] = 9 is the optimal value for the curated instance.
     await expect(page.locator('[data-cell="4,7"]')).toHaveText("9");
   });

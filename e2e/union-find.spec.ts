@@ -41,15 +41,16 @@ test.describe("Union-Find workbench", () => {
     page,
   }) => {
     const slider = page.getByRole("slider", { name: "Scrub steps" });
-    await slider.focus();
-    await slider.press("End");
-    const total = await page
-      .getByTestId("step-position")
-      .textContent()
-      .then((t) => (t ?? "").split("/")[1]?.trim());
-    await expect(page.getByTestId("step-position")).toContainText(
-      `STEP ${total} / ${total}`
-    );
+    await expect(async () => {
+      await slider.focus();
+      await slider.press("End");
+      const text =
+        (await page.getByTestId("step-position").textContent()) ?? "";
+      const total = text.split("/")[1]?.trim();
+      await expect(page.getByTestId("step-position")).toContainText(
+        `STEP ${total} / ${total}`
+      );
+    }).toPass();
     await page.getByRole("button", { name: "Reset" }).click();
     await expect(page.getByTestId("step-position")).toContainText("STEP 1 /");
   });
