@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import type { AlgorithmTopic, AnyAlgorithmTopic, Highlight } from "./contract";
 import { dijkstraTopic } from "@/topics/dijkstra/topic";
 import { dynamicProgrammingTopic } from "@/topics/dynamic-programming/topic";
+import { unionFindTopic } from "@/topics/union-find/topic";
 
 /**
  * Props every topic renderer receives. The shared shell passes the resolved
@@ -57,6 +58,12 @@ const DynamicProgrammingRenderer = dynamic(() =>
   )
 );
 
+const UnionFindRenderer = dynamic(() =>
+  import("@/components/union-find/UnionFindRenderer").then(
+    (m) => m.UnionFindRenderer
+  )
+);
+
 /**
  * Slug to topic module. Adding a future topic is: author run() + bundle + a
  * renderer, then register one entry here. No shared engine, shell, or page edit.
@@ -67,6 +74,7 @@ const registry: Record<string, TopicModule> = {
     dynamicProgrammingTopic,
     DynamicProgrammingRenderer
   ),
+  [unionFindTopic.slug]: defineTopic(unionFindTopic, UnionFindRenderer),
 };
 
 export function getTopicModule(slug: string): TopicModule | undefined {

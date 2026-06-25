@@ -35,7 +35,7 @@ export const topics: Topic[] = [
     slug: "union-find",
     title: "Union-Find",
     flavor: "canonical",
-    status: "coming-soon",
+    status: "available",
     blurb: "Near constant-time connectivity with path compression.",
     complexity: "O(alpha(n))",
     icon: "linked_services",
