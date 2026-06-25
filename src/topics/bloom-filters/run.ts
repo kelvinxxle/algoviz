@@ -56,6 +56,11 @@ export function run(
   if (!Number.isInteger(k) || k <= 0) {
     throw new Error(`Hash count k must be a positive integer, got ${k}`);
   }
+  if (k > m) {
+    throw new Error(
+      `Hash count k (${k}) cannot exceed bit-array size m (${m})`
+    );
+  }
 
   const cap = options.maxSteps ?? Infinity;
   const bits = new Array<number>(m).fill(0);

@@ -59,4 +59,11 @@ describe("bloom hashIndices", () => {
     // switching to byte hashing must not move any ASCII element's positions.
     expect(hashIndices("alice", 3, 32)).toEqual([7, 10, 13]);
   });
+
+  it("collapses all positions onto the only bit when m is 1 (honest edge case)", () => {
+    // With a single bit, every index is necessarily 0: base and step both
+    // reduce mod 1 to 0, so the k positions all land on bit 0. This is correct,
+    // not a degeneration the nonzero-step guard prevents.
+    expect(hashIndices("anything", 4, 1)).toEqual([0, 0, 0, 0]);
+  });
 });

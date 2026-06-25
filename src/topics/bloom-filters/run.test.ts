@@ -265,6 +265,12 @@ describe("bloom run", () => {
     expect(run(TINY, { maxSteps: 3 })).toHaveLength(3);
   });
 
+  it("rejects k greater than m, matching the parser's invariant", () => {
+    expect(() => run({ m: 4, k: 8, inserts: ["x"], queries: [] })).toThrow(
+      /k.*cannot exceed.*m/i
+    );
+  });
+
   it("highlights the bit being set as active during an insert", () => {
     const setFrame = run(TINY).find((s) => s.caption === "Set bit 4");
     expect(setFrame?.highlights).toContainEqual({

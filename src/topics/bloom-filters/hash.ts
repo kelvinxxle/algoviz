@@ -43,13 +43,16 @@ const encoder = new TextEncoder();
  * Compute the k bit positions for `value` in an m-bit filter.
  *
  * Indices may repeat within one element (a real, teachable property: two hash
- * functions can land on the same bit). The step is forced nonzero so the k
- * positions never collapse onto a single bit purely from a zero second hash.
+ * functions can land on the same bit). The step is forced nonzero so that for
+ * m > 1 the k positions do not all collapse onto a single bit purely from a
+ * zero second hash. When m = 1 there is only one bit, so every position is
+ * necessarily 0.
  */
 export function hashIndices(value: string, k: number, m: number): number[] {
   const bytes = encoder.encode(value);
   const base = fnv1a(bytes) % m;
-  // A nonzero step keeps double hashing from degenerating to one position.
+  // A nonzero step keeps double hashing from degenerating to one position when
+  // m > 1; for m = 1 there is only the single bit 0 regardless.
   const step = (djb2(bytes) % m || 1) % m;
   const indices: number[] = [];
   for (let i = 0; i < k; i += 1) {

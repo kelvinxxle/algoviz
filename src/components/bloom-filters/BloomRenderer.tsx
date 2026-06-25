@@ -32,8 +32,8 @@ function Verdict({ state }: { state: BloomState }): ReactNode {
         className="border border-error/50 bg-error/10 p-sm font-code-md text-[12px] text-error"
       >
         <span className="font-semibold">Definitely not in the set.</span> A
-        probed bit is still 0, and an insert always sets every bit, so this
-        answer is certain.
+        probed bit is still 0, and inserting an element always sets all of its
+        hashed bits, so this answer is certain.
       </div>
     );
   }
