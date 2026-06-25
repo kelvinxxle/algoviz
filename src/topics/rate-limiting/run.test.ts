@@ -59,6 +59,30 @@ describe("rate-limiting run", () => {
     expect(init.narration.length).toBeGreaterThan(0);
   });
 
+  it("calls the bucket full in the init narration only when it starts full", () => {
+    const full = run({
+      capacity: 4,
+      refillRate: 1,
+      cost: 1,
+      startTokens: 4,
+      requests: [{ id: "A", t: 0 }],
+    })[0];
+    expect(full.narration).toMatch(/full/i);
+    expect(full.narration).toContain("4 of 4");
+  });
+
+  it("does not claim a full bucket when it starts partially filled", () => {
+    const partial = run({
+      capacity: 4,
+      refillRate: 1,
+      cost: 1,
+      startTokens: 0,
+      requests: [{ id: "A", t: 0 }],
+    })[0];
+    expect(partial.narration).not.toMatch(/full/i);
+    expect(partial.narration).toContain("0 of 4");
+  });
+
   it("decides each request and records the oracle verdicts", () => {
     const final = last(run(INPUT));
     expect(verdicts(final, ["R1", "R2", "R3", "R4"])).toEqual([
@@ -232,6 +256,53 @@ describe("rate-limiting run", () => {
     ).toThrow(/cost/i);
   });
 
+  it("rejects a duplicate request id, mirroring the parser", () => {
+    expect(() =>
+      run({
+        capacity: 2,
+        refillRate: 1,
+        cost: 1,
+        requests: [
+          { id: "A", t: 0 },
+          { id: "A", t: 1 },
+        ],
+      })
+    ).toThrow(/duplicate/i);
+  });
+
+  it("rejects a negative request time, mirroring the parser", () => {
+    expect(() =>
+      run({
+        capacity: 2,
+        refillRate: 1,
+        cost: 1,
+        requests: [{ id: "A", t: -1 }],
+      })
+    ).toThrow(/time/i);
+  });
+
+  it("rejects a non-finite directive, mirroring the parser", () => {
+    expect(() =>
+      run({
+        capacity: Infinity,
+        refillRate: 1,
+        cost: 1,
+        requests: [{ id: "A", t: 0 }],
+      })
+    ).toThrow(/capacity/i);
+  });
+
+  it("rejects a non-positive per-request cost override", () => {
+    expect(() =>
+      run({
+        capacity: 2,
+        refillRate: 1,
+        cost: 1,
+        requests: [{ id: "A", t: 0, cost: 0 }],
+      })
+    ).toThrow(/cost/i);
+  });
+
   it("accrues fractional tokens without flooring (real-valued bucket)", () => {
     // capacity 5, refill 0.5/unit, cost 1, empty start.
     //   R1 t0: tokens 0      -> reject
@@ -268,9 +339,13 @@ describe("rate-limiting run", () => {
     });
   });
 
-  it("handles an empty timeline with just an init and done frame", () => {
-    const empty = run({ capacity: 2, refillRate: 1, cost: 1, requests: [] });
-    expect(empty.map((s) => s.state.phase)).toEqual(["init", "done"]);
+  it("rejects an empty timeline rather than emitting an empty run", () => {
+    // run() mirrors the parser: an empty request list is an honest error, not a
+    // silent init+done shape. A real init+done shape is exercised by timelines
+    // with at least one request elsewhere in this suite.
+    expect(() =>
+      run({ capacity: 2, refillRate: 1, cost: 1, requests: [] })
+    ).toThrow(/request/i);
   });
 });
 
@@ -334,5 +409,24 @@ describe("rate-limiting run allow/reject boundary", () => {
       })
     );
     expect(verdictOf(final, "A")).toBe("allowed");
+  });
+
+  it("carries a faithful sub-cost balance into the snapshot (no display round-up)", () => {
+    // The decision rejects 0.9999995 < cost 1. The emitted snapshot must keep
+    // that balance strictly below cost; rounding it to 6 decimals lifts it to
+    // 1.0, which would make the rendered bucket read a full, sufficient level
+    // on a reject frame: a visual that contradicts the verdict.
+    const steps = run({
+      capacity: 1,
+      refillRate: 1,
+      cost: 1,
+      startTokens: 0,
+      requests: [{ id: "A", t: 0.9999995 }],
+    });
+    const final = last(steps);
+    expect(verdictOf(final, "A")).toBe("rejected");
+    expect(final.state.tokens).toBeLessThan(1);
+    const rejectFrame = steps.find((s) => s.state.phase === "reject");
+    expect(rejectFrame?.state.tokens).toBeLessThan(1);
   });
 });

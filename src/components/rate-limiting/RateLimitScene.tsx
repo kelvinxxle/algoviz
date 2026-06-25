@@ -45,7 +45,12 @@ function roleMap(highlights: readonly Highlight[]): Map<string, HighlightRole> {
 }
 
 function format(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  if (Number.isInteger(value)) return String(value);
+  // Truncate toward zero rather than round, so a balance just below a whole
+  // number (e.g. 0.9999995 on a reject frame) never displays as the full
+  // integer and contradicts the verdict.
+  const truncated = Math.floor(value * 100) / 100;
+  return truncated.toFixed(2);
 }
 
 /**

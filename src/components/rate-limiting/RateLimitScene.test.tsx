@@ -105,4 +105,41 @@ describe("RateLimitScene", () => {
       "frontier"
     );
   });
+
+  it("never displays a sub-cost balance as a full, sufficient bucket on a reject", () => {
+    // A reject frame holds 0.9999995 of 1 token: below the cost of 1. The
+    // displayed number must stay honestly below the cost (not round up to "1"),
+    // and the fill must read as not-quite-full, so the visual never contradicts
+    // the reject verdict.
+    const rejectState: RateLimitState = {
+      tokens: 0.9999995,
+      time: 1,
+      lastRefillTime: 1,
+      currentIndex: 0,
+      phase: "reject",
+    };
+    const { container } = render(
+      <RateLimitScene
+        input={{
+          capacity: 1,
+          refillRate: 1,
+          cost: 1,
+          requests: input.requests,
+        }}
+        layout={layoutRateLimit(input)}
+        state={rejectState}
+        highlights={[{ target: "bucket", role: "rejected" }]}
+      />
+    );
+    const shown = container
+      .querySelector("[data-bucket-tokens]")
+      ?.textContent?.trim();
+    expect(Number(shown)).toBeLessThan(1);
+    const fill = Number(
+      container
+        .querySelector("[data-fill-fraction]")
+        ?.getAttribute("data-fill-fraction")
+    );
+    expect(fill).toBeLessThan(1);
+  });
 });

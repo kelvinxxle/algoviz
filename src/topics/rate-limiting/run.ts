@@ -5,6 +5,7 @@ import type {
   RatePhase,
   RequestStatus,
 } from "./types";
+import { validateInput } from "./validate";
 
 /**
  * Pseudocode line numbers emitted via `Step.line`. Kept in sync with the
@@ -25,20 +26,6 @@ interface Counters {
   refilled: number;
 }
 
-function validate(input: RateLimitInput): void {
-  if (!(input.capacity > 0)) {
-    throw new Error(`Bucket capacity must be positive; got ${input.capacity}`);
-  }
-  if (!(input.refillRate >= 0)) {
-    throw new Error(
-      `Refill rate must be zero or positive; got ${input.refillRate}`
-    );
-  }
-  if (!(input.cost > 0)) {
-    throw new Error(`Request cost must be positive; got ${input.cost}`);
-  }
-}
-
 /** Round to avoid floating-point dust from fractional refill arithmetic. */
 function clean(value: number): number {
   return Math.round(value * 1e6) / 1e6;
@@ -50,6 +37,17 @@ function clean(value: number): number {
  * without ever flipping a meaningful boundary like 0.9999995 vs 1.
  */
 const DECISION_EPSILON = 1e-9;
+
+/**
+ * Faithful token level for the emitted snapshot. Rounds to 9 decimals to shed
+ * IEEE-754 dust while preserving a meaningful sub-cost balance (e.g. 0.9999995
+ * stays below a cost of 1). Rounding to 6 decimals would lift that balance onto
+ * the cost and make a reject frame render a full, sufficient bucket, a visual
+ * that contradicts the verdict.
+ */
+function snapshotTokens(value: number): number {
+  return Math.round(value * 1e9) / 1e9;
+}
 
 /**
  * Higher-precision display for narration balances. Rounding to 6 decimals can
@@ -78,7 +76,8 @@ export function run(
   input: RateLimitInput,
   options: { readonly maxSteps?: number } = {}
 ): Step<RateLimitState>[] {
-  validate(input);
+  const error = validateInput(input);
+  if (error) throw new Error(error);
 
   const cap = options.maxSteps ?? Infinity;
   const capacity = input.capacity;
@@ -123,7 +122,7 @@ export function run(
     if (capped()) return false;
     steps.push({
       state: {
-        tokens: clean(tokens),
+        tokens: snapshotTokens(tokens),
         time: frame.time,
         lastRefillTime,
         currentIndex: frame.currentIndex,
@@ -160,13 +159,18 @@ export function run(
     return out;
   };
 
+  const startDescription =
+    startTokens === capacity
+      ? `Start with a full bucket: ${show(startTokens)} of ${capacity} tokens.`
+      : `Start with ${show(startTokens)} of ${capacity} tokens.`;
+
   emit({
     phase: "init",
     time: startTime,
     currentIndex: null,
     line: LINE.init,
     caption: "Initialize",
-    narration: `Start with a full bucket: ${startTokens} of ${capacity} tokens. It refills ${input.refillRate} token(s) per unit time and each request costs ${input.cost}.`,
+    narration: `${startDescription} It refills ${input.refillRate} token(s) per unit time and each request costs ${input.cost}.`,
     highlights: requestHighlights(null, "active", "active"),
   });
 

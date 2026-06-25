@@ -1,5 +1,6 @@
 import type { ParseResult } from "@/engine/contract";
 import type { RateLimitInput, RateRequest } from "./types";
+import { validateInput } from "./validate";
 
 /**
  * Sandbox input format for token-bucket rate limiting.
@@ -115,16 +116,22 @@ export function parseInput(raw: string): ParseResult<RateLimitInput> {
     return { ok: false, error: "Provide at least one request: time [id]" };
   }
 
-  return {
-    ok: true,
-    value: {
-      capacity,
-      refillRate,
-      cost,
-      startTokens: startTokens ?? capacity,
-      requests,
-    },
+  const value: RateLimitInput = {
+    capacity,
+    refillRate,
+    cost,
+    startTokens: startTokens ?? capacity,
+    requests,
   };
+
+  // Backstop: enforce the same invariants run() enforces, from one shared
+  // source, so the parser and the engine cannot drift. The per-line checks above
+  // give friendlier messages for the common cases; this catches anything they
+  // miss before a value can reach run().
+  const invariantError = validateInput(value);
+  if (invariantError) return { ok: false, error: invariantError };
+
+  return { ok: true, value };
 }
 
 /** Render a rate-limit input back to the editable sandbox text format. */
