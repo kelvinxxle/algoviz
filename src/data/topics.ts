@@ -98,7 +98,7 @@ export const topics: Topic[] = [
     slug: "rate-limiting",
     title: "Rate Limiting",
     flavor: "systems",
-    status: "coming-soon",
+    status: "available",
     blurb: "The algorithm gating every API you call.",
     complexity: "O(1)",
     icon: "speed",
