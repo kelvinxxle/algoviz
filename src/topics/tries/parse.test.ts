@@ -26,6 +26,14 @@ describe("tries parseInput", () => {
     }
   });
 
+  it("accepts starts as an alias for prefix", () => {
+    const result = parseInput("insert a\nstarts a");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.operations[1]).toEqual({ kind: "prefix", word: "a" });
+    }
+  });
+
   it("lowercases words so the trie stays single-case", () => {
     const result = parseInput("insert APP");
     expect(result.ok).toBe(true);

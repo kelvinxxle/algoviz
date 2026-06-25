@@ -104,29 +104,39 @@ export function TrieTree({
         })}
       </g>
 
-      {state.falloff && ghostParent ? (
-        <g data-testid="trie-falloff" opacity={0.85}>
-          <motion.circle
-            cx={ghostParent.x}
-            cy={ghostParent.y + 110}
-            r={NODE_RADIUS}
-            className="fill-surface"
-            stroke="rgb(var(--color-error))"
-            strokeWidth={2}
-            strokeDasharray="4 3"
-            initial={false}
-          />
-          <text
-            x={ghostParent.x}
-            y={ghostParent.y + 110}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            className="fill-error font-mono text-[11px] font-bold"
-          >
-            {state.falloff.char}
-          </text>
-        </g>
-      ) : null}
+      {state.falloff && ghostParent
+        ? (() => {
+            // Keep the ghost fully inside the viewbox: the deepest layout row
+            // sits near the bottom, where a fixed +110 offset would clip it.
+            const ghostY = Math.min(
+              ghostParent.y + 110,
+              VIEWBOX.height - NODE_RADIUS
+            );
+            return (
+              <g data-testid="trie-falloff" opacity={0.85}>
+                <motion.circle
+                  cx={ghostParent.x}
+                  cy={ghostY}
+                  r={NODE_RADIUS}
+                  className="fill-surface"
+                  stroke="rgb(var(--color-error))"
+                  strokeWidth={2}
+                  strokeDasharray="4 3"
+                  initial={false}
+                />
+                <text
+                  x={ghostParent.x}
+                  y={ghostY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className="fill-error font-mono text-[11px] font-bold"
+                >
+                  {state.falloff.char}
+                </text>
+              </g>
+            );
+          })()
+        : null}
 
       <g fontFamily="var(--font-mono)">
         {layout.nodes.map((node) => {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { TrieTree } from "./TrieTree";
-import type { PositionedTrie } from "@/topics/tries/layout";
+import { VIEWBOX, type PositionedTrie } from "@/topics/tries/layout";
 import type { TrieState } from "@/topics/tries/types";
 import type { Highlight } from "@/engine/contract";
 
@@ -118,6 +118,32 @@ describe("TrieTree", () => {
     const ghost = container.querySelector('[data-testid="trie-falloff"]');
     expect(ghost).not.toBeNull();
     expect(ghost).toHaveTextContent("x");
+  });
+
+  it("keeps the falloff ghost inside the viewbox when the parent is deepest", () => {
+    // The deepest layout node "ab" sits near the bottom of the viewbox; a fixed
+    // downward offset would push the ghost past VIEWBOX.height and clip it.
+    const deepMiss: TrieState = {
+      ...partial,
+      op: { kind: "search", word: "abx" },
+      cursor: "ab",
+      falloff: { parent: "ab", char: "x" },
+      outcome: "miss-prefix",
+      phase: "search",
+    };
+    const { container } = render(
+      <TrieTree layout={layout} state={deepMiss} highlights={highlights} />
+    );
+    const circle = container.querySelector(
+      '[data-testid="trie-falloff"] circle'
+    );
+    const text = container.querySelector('[data-testid="trie-falloff"] text');
+    const cy = Number(circle?.getAttribute("cy"));
+    const ty = Number(text?.getAttribute("y"));
+    expect(cy).toBeLessThanOrEqual(VIEWBOX.height);
+    expect(cy).toBeGreaterThanOrEqual(0);
+    expect(ty).toBeLessThanOrEqual(VIEWBOX.height);
+    expect(ty).toBeGreaterThanOrEqual(0);
   });
 
   it("does not draw a falloff ghost when there is no falloff", () => {

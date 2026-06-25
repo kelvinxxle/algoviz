@@ -8,10 +8,10 @@ import type { Operation, OpKind, TrieInput } from "./types";
  *   search apple     test whether a full word is stored
  *   prefix app       test whether any stored word starts with this
  *
- * `startsWith` is accepted as an alias for `prefix`. Words are lowercased and
- * must be letters only, since each character becomes a node. Blank lines and
- * `#` comments are ignored, and at least one insert is required so there is a
- * trie to query.
+ * `startsWith` and `starts` are accepted as aliases for `prefix`. Words are
+ * lowercased and must be letters only, since each character becomes a node.
+ * Blank lines and `#` comments are ignored, and at least one insert is required
+ * so there is a trie to query.
  */
 export function parseInput(raw: string): ParseResult<TrieInput> {
   const lines = raw.split("\n");
