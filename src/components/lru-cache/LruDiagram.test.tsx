@@ -152,6 +152,35 @@ describe("LruDiagram", () => {
     expect(getByTestId("lru-trace").textContent).toContain("B");
   });
 
+  it("renders the probed-but-absent key as a rejected map row on a miss", () => {
+    const missState: LruState = {
+      capacity: 3,
+      order: [
+        { key: "C", value: 3 },
+        { key: "A", value: 1 },
+      ],
+      op: { kind: "get", key: "Z" },
+      outcome: "miss",
+      evicted: null,
+      lastValue: null,
+      promoted: false,
+    };
+    const { container } = render(
+      <LruDiagram
+        state={missState}
+        highlights={[{ target: "map:Z", role: "rejected" }]}
+      />
+    );
+    // The miss frame emits map:Z=rejected; the panel must render a row for the
+    // probed key so the emphasis is observable, and label it honestly (no node).
+    const row = container.querySelector('[data-map="Z"]');
+    expect(row).toHaveAttribute("data-role", "rejected");
+    expect(row?.textContent).toMatch(/absent|no entry/i);
+    expect(row?.textContent).not.toContain("ptr");
+    // A miss probes the map, not the list: no list node for the absent key.
+    expect(container.querySelector('[data-node="Z"]')).toBeNull();
+  });
+
   it("shows an explicit empty state when the cache holds nothing", () => {
     const empty: LruState = {
       capacity: 3,

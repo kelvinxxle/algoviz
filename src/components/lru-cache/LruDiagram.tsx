@@ -50,18 +50,25 @@ function trace(state: LruState): string {
 function MapPanel({
   order,
   evicted,
+  missedKey,
   roles,
 }: {
   order: readonly LruNode[];
   evicted: LruNode | null;
+  missedKey: string | null;
   roles: Map<string, HighlightRole>;
 }): ReactNode {
+  // Each row is a key the map currently points at, plus on a miss the probed
+  // key that is absent (rendered so run()'s rejected highlight is observable).
+  // `missing` rows have no node behind them, so they get an honest label.
   // Sort by key so a slot keeps its place as recency changes: the hash map has
   // no order of its own, only the linked list does. On an eviction frame the
   // dropped key is shown alongside the residents so its rejected emphasis lands.
-  const entries = [...order, ...(evicted ? [evicted] : [])].sort((a, b) =>
-    a.key < b.key ? -1 : 1
-  );
+  const rows: { key: string; missing: boolean }[] = [
+    ...order.map((n) => ({ key: n.key, missing: false })),
+    ...(evicted ? [{ key: evicted.key, missing: false }] : []),
+    ...(missedKey ? [{ key: missedKey, missing: true }] : []),
+  ].sort((a, b) => (a.key < b.key ? -1 : 1));
   return (
     <div className="flex min-w-[160px] flex-col gap-sm">
       <h3 className="flex items-center gap-2 font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant">
@@ -73,17 +80,17 @@ function MapPanel({
         </span>
         Hash Map
       </h3>
-      {entries.length === 0 ? (
+      {rows.length === 0 ? (
         <p className="border border-outline-variant bg-surface-container-lowest p-sm font-code-md text-[11px] text-on-surface-variant opacity-70">
           no keys
         </p>
       ) : (
-        entries.map((node) => {
-          const role: Role = roles.get(`map:${node.key}`) ?? "resident";
+        rows.map((row) => {
+          const role: Role = roles.get(`map:${row.key}`) ?? "resident";
           return (
             <motion.div
-              key={node.key}
-              data-map={node.key}
+              key={row.key}
+              data-map={row.key}
               data-role={role}
               layout
               initial={false}
@@ -91,10 +98,10 @@ function MapPanel({
               className="flex items-center justify-between gap-md border bg-surface-container-lowest px-sm py-xs"
             >
               <span className="font-code-md text-[12px] text-secondary">
-                {node.key}
+                {row.key}
               </span>
               <span className="font-label-caps text-[9px] uppercase tracking-wider text-outline">
-                ptr -&gt; node
+                {row.missing ? "absent" : "ptr -> node"}
               </span>
             </motion.div>
           );
@@ -232,6 +239,9 @@ export function LruDiagram({
   // `state.evicted` still carries it. Render it (with its rejected highlight) so
   // the eviction is observable rather than an invisible vanish.
   const evicted = state.outcome === "evict" ? state.evicted : null;
+  // On a miss the probed key is absent from the cache; surface it in the map
+  // panel so run()'s rejected highlight for the probe is observable.
+  const missedKey = state.outcome === "miss" ? (state.op?.key ?? null) : null;
 
   return (
     <div
@@ -250,7 +260,12 @@ export function LruDiagram({
         </span>
       </div>
       <div className="flex flex-col gap-lg md:flex-row md:items-start">
-        <MapPanel order={state.order} evicted={evicted} roles={roles} />
+        <MapPanel
+          order={state.order}
+          evicted={evicted}
+          missedKey={missedKey}
+          roles={roles}
+        />
         <ListPanel order={state.order} evicted={evicted} roles={roles} />
       </div>
     </div>
