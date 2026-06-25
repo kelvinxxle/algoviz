@@ -80,6 +80,7 @@ export function run(
   const buildHighlights = (
     overrides: ReadonlyArray<readonly [string, HighlightRole]>
   ): Highlight[] => {
+    // Baseline roles come from `state.bits`; highlights are only for per-frame emphasis.
     const map = new Map<string, HighlightRole>();
     for (const [target, role] of overrides) map.set(target, role);
     return [...map.entries()].map(([target, role]) => ({ target, role }));
