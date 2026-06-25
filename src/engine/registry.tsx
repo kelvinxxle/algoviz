@@ -9,6 +9,7 @@ import { triesTopic } from "@/topics/tries/topic";
 import { bloomTopic } from "@/topics/bloom-filters/topic";
 import { consistentHashingTopic } from "@/topics/consistent-hashing/topic";
 import { lruCacheTopic } from "@/topics/lru-cache/topic";
+import { bTreesTopic } from "@/topics/b-trees/topic";
 
 /**
  * Props every topic renderer receives. The shared shell passes the resolved
@@ -95,6 +96,10 @@ const LruRenderer = dynamic(() =>
   import("@/components/lru-cache/LruRenderer").then((m) => m.LruRenderer)
 );
 
+const BTreeRenderer = dynamic(() =>
+  import("@/components/b-trees/BTreeRenderer").then((m) => m.BTreeRenderer)
+);
+
 /**
  * Slug to topic module. Adding a future topic is: author run() + bundle + a
  * renderer, then register one entry here. No shared engine, shell, or page edit.
@@ -117,6 +122,7 @@ const registry: Record<string, TopicModule> = {
     ConsistentHashingRenderer
   ),
   [lruCacheTopic.slug]: defineTopic(lruCacheTopic, LruRenderer),
+  [bTreesTopic.slug]: defineTopic(bTreesTopic, BTreeRenderer),
 };
 
 export function getTopicModule(slug: string): TopicModule | undefined {
