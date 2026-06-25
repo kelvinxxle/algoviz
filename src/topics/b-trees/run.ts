@@ -6,6 +6,7 @@ import type {
   BTreeOutcome,
   BTreeState,
 } from "./types";
+import { validateBTreeInput } from "./validate";
 
 /**
  * Pseudocode line numbers emitted via `Step.line`. Kept in sync with the
@@ -50,8 +51,9 @@ export function run(
   options: { readonly maxSteps?: number } = {}
 ): Step<BTreeState>[] {
   const order = input.order;
-  if (!Number.isInteger(order) || order < 3) {
-    throw new Error(`B-Tree order must be an integer >= 3, got ${order}`);
+  const validationError = validateBTreeInput(input);
+  if (validationError) {
+    throw new Error(validationError);
   }
   const cap = options.maxSteps ?? Infinity;
 

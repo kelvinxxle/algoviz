@@ -100,12 +100,28 @@ const ORDER4 = (inserts: number[], search?: number): BTreeInput => ({
 });
 
 describe("b-trees run", () => {
-  it("emits an init frame for an empty tree", () => {
-    const steps = run(ORDER4([]));
+  it("opens on a Start frame that shows the empty tree before the first insert", () => {
+    const steps = run(ORDER4([7]));
     expect(steps.length).toBeGreaterThan(0);
     expect(steps[0].state.rootId).toBeNull();
     expect(steps[0].state.height).toBe(0);
     expect(steps[0].narration.length).toBeGreaterThan(0);
+  });
+
+  it("throws when given no keys to insert, mirroring the parser", () => {
+    expect(() => run(ORDER4([]))).toThrow();
+  });
+
+  it("throws when the order exceeds the supported maximum", () => {
+    expect(() => run({ order: 8, inserts: [1, 2, 3] })).toThrow();
+  });
+
+  it("throws when an insert key is not an integer", () => {
+    expect(() => run(ORDER4([1, 2.5, 3]))).toThrow();
+  });
+
+  it("throws when the search key is not an integer", () => {
+    expect(() => run(ORDER4([1, 2, 3], 2.5))).toThrow();
   });
 
   it("inserts the first key into a single leaf root", () => {

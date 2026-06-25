@@ -1,8 +1,7 @@
 import type { ParseResult } from "@/engine/contract";
 import type { BTreeInput } from "./types";
+import { MAX_ORDER, MIN_ORDER } from "./validate";
 
-const MIN_ORDER = 3;
-const MAX_ORDER = 7;
 const DEFAULT_ORDER = 4;
 
 /**

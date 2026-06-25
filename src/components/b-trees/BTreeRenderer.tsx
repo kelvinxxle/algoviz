@@ -9,7 +9,7 @@ import { BTreeTree } from "./BTreeTree";
 
 const LEGEND: Array<{ label: string; className: string }> = [
   { label: "Active", className: "bg-secondary" },
-  { label: "Matched", className: "bg-primary" },
+  { label: "On path", className: "bg-primary" },
   { label: "Resting", className: "bg-outline-variant" },
 ];
 
