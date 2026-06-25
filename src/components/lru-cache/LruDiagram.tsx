@@ -25,7 +25,7 @@ function roleMap(highlights: readonly Highlight[]): Map<string, HighlightRole> {
   return map;
 }
 
-function telemetry(state: LruState): string {
+function trace(state: LruState): string {
   const { op, outcome, evicted, lastValue, promoted } = state;
   switch (outcome) {
     case "hit":
@@ -49,14 +49,19 @@ function telemetry(state: LruState): string {
 
 function MapPanel({
   order,
+  evicted,
   roles,
 }: {
   order: readonly LruNode[];
+  evicted: LruNode | null;
   roles: Map<string, HighlightRole>;
 }): ReactNode {
   // Sort by key so a slot keeps its place as recency changes: the hash map has
-  // no order of its own, only the linked list does.
-  const entries = [...order].sort((a, b) => (a.key < b.key ? -1 : 1));
+  // no order of its own, only the linked list does. On an eviction frame the
+  // dropped key is shown alongside the residents so its rejected emphasis lands.
+  const entries = [...order, ...(evicted ? [evicted] : [])].sort((a, b) =>
+    a.key < b.key ? -1 : 1
+  );
   return (
     <div className="flex min-w-[160px] flex-col gap-sm">
       <h3 className="flex items-center gap-2 font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant">
@@ -103,6 +108,7 @@ function ListNode({ node, role }: { node: LruNode; role: Role }): ReactNode {
   return (
     <motion.div
       data-node={node.key}
+      data-key={node.key}
       data-role={role}
       layout
       initial={false}
@@ -114,7 +120,7 @@ function ListNode({ node, role }: { node: LruNode; role: Role }): ReactNode {
           {node.key}
         </span>
         <span
-          data-value={node.key}
+          data-value={node.value}
           className="font-label-caps text-[10px] text-on-surface-variant"
         >
           {node.value}
@@ -134,9 +140,11 @@ function ListNode({ node, role }: { node: LruNode; role: Role }): ReactNode {
 
 function ListPanel({
   order,
+  evicted,
   roles,
 }: {
   order: readonly LruNode[];
+  evicted: LruNode | null;
   roles: Map<string, HighlightRole>;
 }): ReactNode {
   return (
@@ -184,6 +192,22 @@ function ListPanel({
           >
             LRU
           </div>
+          {evicted ? (
+            <div className="flex items-center gap-2">
+              <span aria-hidden="true" className="text-error">
+                &rarr;
+              </span>
+              <div className="flex flex-col items-center gap-1 opacity-80">
+                <ListNode
+                  node={evicted}
+                  role={roles.get(`node:${evicted.key}`) ?? "rejected"}
+                />
+                <span className="font-label-caps text-[9px] uppercase tracking-wider text-error">
+                  evicting
+                </span>
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
@@ -204,6 +228,10 @@ export function LruDiagram({
   highlights: readonly Highlight[];
 }): ReactNode {
   const roles = roleMap(highlights);
+  // On an eviction frame the dropped node has already left `state.order`, but
+  // `state.evicted` still carries it. Render it (with its rejected highlight) so
+  // the eviction is observable rather than an invisible vanish.
+  const evicted = state.outcome === "evict" ? state.evicted : null;
 
   return (
     <div
@@ -215,15 +243,15 @@ export function LruDiagram({
           size {state.order.length} / capacity {state.capacity}
         </span>
         <span
-          data-testid="lru-telemetry"
+          data-testid="lru-trace"
           className="border border-primary/30 bg-base/60 px-sm py-xs font-code-md text-[11px] text-primary"
         >
-          {telemetry(state)}
+          {trace(state)}
         </span>
       </div>
       <div className="flex flex-col gap-lg md:flex-row md:items-start">
-        <MapPanel order={state.order} roles={roles} />
-        <ListPanel order={state.order} roles={roles} />
+        <MapPanel order={state.order} evicted={evicted} roles={roles} />
+        <ListPanel order={state.order} evicted={evicted} roles={roles} />
       </div>
     </div>
   );

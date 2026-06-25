@@ -73,18 +73,20 @@ describe("LruDiagram", () => {
     expect(getByTestId("lru-lru")).toHaveTextContent(/LRU/i);
   });
 
-  it("shows each node value", () => {
+  it("shows each node value under data-value and its key under data-key", () => {
     const { container } = render(
       <LruDiagram state={state} highlights={highlights} />
     );
-    expect(container.querySelector('[data-value="A"]')).toHaveTextContent("1");
+    const a = container.querySelector('[data-key="A"]');
+    expect(a).toBeInTheDocument();
+    expect(a?.querySelector('[data-value="1"]')).toHaveTextContent("1");
   });
 
-  it("shows an honest telemetry line for the current outcome", () => {
+  it("shows an honest trace line for the current outcome", () => {
     const { getByTestId } = render(
       <LruDiagram state={state} highlights={highlights} />
     );
-    expect(getByTestId("lru-telemetry").textContent).toMatch(/hit/i);
+    expect(getByTestId("lru-trace").textContent).toMatch(/hit/i);
   });
 
   it("does not claim the node moved on the pre-promotion lookup-hit frame", () => {
@@ -93,7 +95,7 @@ describe("LruDiagram", () => {
     const { getByTestId } = render(
       <LruDiagram state={lookup} highlights={highlights} />
     );
-    const text = getByTestId("lru-telemetry").textContent ?? "";
+    const text = getByTestId("lru-trace").textContent ?? "";
     expect(text).toMatch(/hit/i);
     expect(text).not.toMatch(/move|head/i);
   });
@@ -111,10 +113,10 @@ describe("LruDiagram", () => {
     const { getByTestId } = render(
       <LruDiagram state={promote} highlights={highlights} />
     );
-    expect(getByTestId("lru-telemetry").textContent).toMatch(/head/i);
+    expect(getByTestId("lru-trace").textContent).toMatch(/head/i);
   });
 
-  it("names the evicted key on an eviction frame", () => {
+  it("renders the evicted node and its map entry with the rejected role", () => {
     const evictState: LruState = {
       capacity: 2,
       order: [
@@ -127,13 +129,27 @@ describe("LruDiagram", () => {
       lastValue: null,
       promoted: false,
     };
-    const { getByTestId } = render(
+    const { getByTestId, container } = render(
       <LruDiagram
         state={evictState}
-        highlights={[{ target: "node:B", role: "rejected" }]}
+        highlights={[
+          { target: "node:B", role: "rejected" },
+          { target: "map:B", role: "rejected" },
+        ]}
       />
     );
-    expect(getByTestId("lru-telemetry").textContent).toContain("B");
+    // The evicted node has already left state.order, but the frame still
+    // emphasizes it as rejected; the diagram must render it from state.evicted
+    // so the eviction is observable, not an invisible vanish.
+    expect(container.querySelector('[data-node="B"]')).toHaveAttribute(
+      "data-role",
+      "rejected"
+    );
+    expect(container.querySelector('[data-map="B"]')).toHaveAttribute(
+      "data-role",
+      "rejected"
+    );
+    expect(getByTestId("lru-trace").textContent).toContain("B");
   });
 
   it("shows an explicit empty state when the cache holds nothing", () => {

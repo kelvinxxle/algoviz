@@ -28,7 +28,7 @@ export interface LruNode {
   readonly value: number;
 }
 
-/** What happened in the frame, used for honest narration and telemetry. */
+/** What happened in the frame, used for honest narration and the trace line. */
 export type LruOutcome =
   | "hit" // get found the key
   | "miss" // get did not find the key
@@ -66,7 +66,7 @@ export interface LruState {
    * frame (the promote frame of a hit, or a put that updates an existing key).
    * A cache hit splits into a lookup frame (`false`, order unchanged) and a
    * promote frame (`true`), so the snapshot itself tells the renderer whether
-   * the recency move has happened yet. This keeps telemetry honest: the
+   * the recency move has happened yet. This keeps the trace line honest: the
    * pre-promotion frame must not claim the node has moved.
    */
   readonly promoted: boolean;
