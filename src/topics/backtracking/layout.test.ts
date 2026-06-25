@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import { layoutTree, VIEWBOX } from "./layout";
 import { run } from "./run";
 
-const idsOf = (n: number) =>
-  new Set(run({ n })[run({ n }).length - 1].state.nodes.map((node) => node.id));
+const idsOf = (n: number) => {
+  const steps = run({ n });
+  return new Set(steps[steps.length - 1].state.nodes.map((node) => node.id));
+};
 
 describe("backtracking layoutTree", () => {
   it("positions every node discovered by the full run", () => {
@@ -23,11 +25,11 @@ describe("backtracking layoutTree", () => {
   it("places every child below its parent", () => {
     const tree = layoutTree({ n: 4 });
     const byId = new Map(tree.nodes.map((node) => [node.id, node]));
+    const finalNodes = run({ n: 4 }).at(-1)!.state.nodes;
+    const fullById = new Map(finalNodes.map((x) => [x.id, x]));
     for (const node of tree.nodes) {
       if (node.id === "root") continue;
-      const fullNode = run({ n: 4 })[run({ n: 4 }).length - 1].state.nodes.find(
-        (x) => x.id === node.id
-      )!;
+      const fullNode = fullById.get(node.id)!;
       const parent = byId.get(fullNode.parentId as string);
       expect(parent).toBeDefined();
       expect(node.y).toBeGreaterThan(parent!.y);
