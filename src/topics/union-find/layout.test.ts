@@ -25,6 +25,19 @@ describe("layoutForest", () => {
     }
   });
 
+  it("keeps a deep forest inside the viewbox", () => {
+    // A chain of depth 5 (A->B->C->D->E->F) exceeds maxDepth * ROW_GAP > height
+    // under naive centering, pushing the root above the top and the deepest
+    // leaf below the bottom. Union-Find depth is O(log n), so realistic sandbox
+    // inputs reach this depth.
+    const parent = { A: "A", B: "A", C: "B", D: "C", E: "D", F: "E" };
+    const els = ["A", "B", "C", "D", "E", "F"];
+    const forest = layoutForest(parent, els);
+    for (const n of forest.nodes) {
+      expect(within(n.y, VIEWBOX.height)).toBe(true);
+    }
+  });
+
   it("places a parent above its children", () => {
     const forest = layoutForest({ A: "A", B: "A" }, ["A", "B"]);
     const a = forest.nodes.find((n) => n.id === "A")!;

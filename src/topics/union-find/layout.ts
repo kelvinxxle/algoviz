@@ -88,7 +88,11 @@ export function layoutForest(
 
   const innerW = VIEWBOX.width - 2 * PADDING;
   const colSpan = maxCol - minCol;
-  const treeHeight = maxDepth * ROW_GAP;
+  const effectiveRowGap = Math.min(
+    ROW_GAP,
+    (VIEWBOX.height - 2 * PADDING) / Math.max(maxDepth, 1)
+  );
+  const treeHeight = maxDepth * effectiveRowGap;
   const yStart = (VIEWBOX.height - treeHeight) / 2;
 
   const xOf = (c: number): number => {
@@ -99,7 +103,7 @@ export function layoutForest(
   const nodes: PositionedNode[] = elements.map((id) => ({
     id,
     x: round(xOf(col.get(id) ?? 0)),
-    y: round(yStart + (depth.get(id) ?? 0) * ROW_GAP),
+    y: round(yStart + (depth.get(id) ?? 0) * effectiveRowGap),
   }));
 
   return { nodes };
