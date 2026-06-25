@@ -81,9 +81,6 @@ export function run(
     overrides: ReadonlyArray<readonly [string, HighlightRole]>
   ): Highlight[] => {
     const map = new Map<string, HighlightRole>();
-    for (let i = 0; i < m; i += 1) {
-      if (bits[i] === 1) map.set(`bit:${i}`, "visited");
-    }
     for (const [target, role] of overrides) map.set(target, role);
     return [...map.entries()].map(([target, role]) => ({ target, role }));
   };

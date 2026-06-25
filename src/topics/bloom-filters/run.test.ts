@@ -261,6 +261,23 @@ describe("bloom run", () => {
     }
   });
 
+  it("bounds emitted per-frame highlights by O(k): no baseline visited pre-scan", () => {
+    // Set many bits, then assert no frame carries a baseline "visited" entry for
+    // a set bit. Set bits render as "visited" via the renderer fallback, so the
+    // generator must emit only per-frame overrides, keeping highlights O(k) not
+    // O(set bits). Each insert/query frame emphasizes at most its k positions.
+    const steps = run({
+      m: 64,
+      k: 3,
+      inserts: ["a", "b", "c", "d", "e", "f", "g", "h"],
+      queries: ["a", "z"],
+    });
+    for (const frame of steps) {
+      expect(frame.highlights.some((h) => h.role === "visited")).toBe(false);
+      expect(frame.highlights.length).toBeLessThanOrEqual(3);
+    }
+  });
+
   it("caps emitted steps at maxSteps", () => {
     expect(run(TINY, { maxSteps: 3 })).toHaveLength(3);
   });
