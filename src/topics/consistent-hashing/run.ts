@@ -26,25 +26,6 @@ interface MutableAssignment {
   ownerVnode: string | null;
 }
 
-/** Insert a vnode into an ascending-by-position list, breaking ties by label. */
-function insertSorted(list: VirtualNode[], vnode: VirtualNode): void {
-  let lo = 0;
-  let hi = list.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    const cur = list[mid];
-    if (
-      cur.pos < vnode.pos ||
-      (cur.pos === vnode.pos && cur.label < vnode.label)
-    ) {
-      lo = mid + 1;
-    } else {
-      hi = mid;
-    }
-  }
-  list.splice(lo, 0, vnode);
-}
-
 /** Is `pos` inside the clockwise arc (fromExclusive, toInclusive] on the ring? */
 function inArc(
   fromExclusive: number,
@@ -91,6 +72,10 @@ export function run(
   }
 
   const vnodes: VirtualNode[] = [];
+  // Ascending ring positions, kept in lockstep with `vnodes`. Maintaining it on
+  // membership changes (not rebuilding per lookup) keeps each lookup a genuine
+  // O(log(N*V)) binary search, matching the advertised complexity.
+  const ringPositions: number[] = [];
   const nodes: string[] = [];
   const assignments = new Map<string, MutableAssignment>();
   for (const key of input.keys) {
@@ -155,11 +140,29 @@ export function run(
     return [...map.entries()].map(([target, role]) => ({ target, role }));
   };
 
+  /** Insert a vnode into `vnodes` (ascending by pos, ties by label) and mirror
+   * its position into `ringPositions` at the same index. */
+  const addVnode = (vnode: VirtualNode): void => {
+    let lo = 0;
+    let hi = vnodes.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      const cur = vnodes[mid];
+      if (
+        cur.pos < vnode.pos ||
+        (cur.pos === vnode.pos && cur.label < vnode.label)
+      ) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    vnodes.splice(lo, 0, vnode);
+    ringPositions.splice(lo, 0, vnode.pos);
+  };
+
   const lookupOwner = (pos: number): VirtualNode => {
-    const result = ringSuccessor(
-      vnodes.map((v) => v.pos),
-      pos
-    );
+    const result = ringSuccessor(ringPositions, pos);
     counters.lookups += 1;
     counters.probes += result.comparisons;
     return vnodes[result.index];
@@ -188,7 +191,7 @@ export function run(
         replica: r,
         pos: hashRing(label, ringSize),
       };
-      insertSorted(vnodes, vnode);
+      addVnode(vnode);
       counters.placements += 1;
       if (
         !emit({
@@ -286,7 +289,10 @@ export function run(
 
   function removeNode(node: string): void {
     for (let i = vnodes.length - 1; i >= 0; i -= 1) {
-      if (vnodes[i].node === node) vnodes.splice(i, 1);
+      if (vnodes[i].node === node) {
+        vnodes.splice(i, 1);
+        ringPositions.splice(i, 1);
+      }
     }
     const idx = nodes.indexOf(node);
     if (idx >= 0) nodes.splice(idx, 1);

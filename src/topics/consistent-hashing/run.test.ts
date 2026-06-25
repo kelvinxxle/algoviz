@@ -248,6 +248,28 @@ describe("consistent-hashing run", () => {
     expect(final.counters.probes).toBeGreaterThan(0);
   });
 
+  it("keeps lookups logarithmic: total probes stay within lookups * ceil(log2(ring members))", () => {
+    const nodes = Array.from({ length: 24 }, (_, i) => `n${i}`);
+    const keys = Array.from({ length: 50 }, (_, i) => `k${i}`);
+    const input: ConsistentHashingInput = {
+      ringSize: 4096,
+      vnodesPerNode: 4,
+      nodes,
+      keys,
+    };
+    const final = last(run(input));
+    const ringMembers = nodes.length * input.vnodesPerNode;
+    const perLookupBound = Math.ceil(Math.log2(ringMembers)) + 2;
+    // A linear scan would cost ~ringMembers probes per lookup; the binary search
+    // keeps it logarithmic, so the advertised O(log(N*V)) lookup is honest.
+    expect(final.counters.probes).toBeLessThanOrEqual(
+      final.counters.lookups * perLookupBound
+    );
+    expect(final.counters.probes).toBeLessThan(
+      final.counters.lookups * ringMembers
+    );
+  });
+
   it("only emits pseudocode lines that exist in a 10-line listing", () => {
     for (const step of run(curatedInput)) {
       if (step.line !== undefined) {

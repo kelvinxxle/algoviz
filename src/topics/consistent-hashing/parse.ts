@@ -22,6 +22,7 @@ export function parseInput(raw: string): ParseResult<ConsistentHashingInput> {
   const nodes: string[] = [];
   const nodeSet = new Set<string>();
   const keys: string[] = [];
+  const keySet = new Set<string>();
   let ringSize: number | undefined;
   let vnodesPerNode: number | undefined;
   let change: MembershipChange | undefined;
@@ -81,7 +82,12 @@ export function parseInput(raw: string): ParseResult<ConsistentHashingInput> {
       if (parts.length !== 2) {
         return { ok: false, error: `Line ${lineNo}: expected "key <name>"` };
       }
-      keys.push(parts[1]);
+      const name = parts[1];
+      if (keySet.has(name)) {
+        return { ok: false, error: `Line ${lineNo}: duplicate key "${name}"` };
+      }
+      keySet.add(name);
+      keys.push(name);
       continue;
     }
 

@@ -81,6 +81,12 @@ describe("consistent-hashing parseInput", () => {
     if (!result.ok) expect(result.error).toMatch(/duplicate|already/i);
   });
 
+  it("rejects a duplicate key so ring renderer keys never collide", () => {
+    const result = parseInput("node A\nkey k1\nkey k1");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toMatch(/duplicate key/i);
+  });
+
   it("rejects joining a node that already exists", () => {
     const result = parseInput("node A\nkey k1\njoin A");
     expect(result.ok).toBe(false);
