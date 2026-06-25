@@ -142,4 +142,34 @@ describe("RateLimitScene", () => {
     );
     expect(fill).toBeLessThan(1);
   });
+
+  it("renders an essentially-zero negative balance as 0.00, not a negative reading", () => {
+    // The epsilon-allow boundary can leave a tiny negative balance (a spend that
+    // lands at cost - DECISION_EPSILON). The displayed number must read as an
+    // honest empty bucket "0.00", never a misleading negative like "-0.01".
+    const dustState: RateLimitState = {
+      tokens: -1e-9,
+      time: 1,
+      lastRefillTime: 1,
+      currentIndex: 0,
+      phase: "allow",
+    };
+    const { container } = render(
+      <RateLimitScene
+        input={{
+          capacity: 1,
+          refillRate: 1,
+          cost: 1,
+          requests: input.requests,
+        }}
+        layout={layoutRateLimit(input)}
+        state={dustState}
+        highlights={[{ target: "bucket", role: "path" }]}
+      />
+    );
+    const shown = container
+      .querySelector("[data-bucket-tokens]")
+      ?.textContent?.trim();
+    expect(shown).toBe("0.00");
+  });
 });

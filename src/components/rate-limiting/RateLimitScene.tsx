@@ -48,8 +48,10 @@ function format(value: number): string {
   if (Number.isInteger(value)) return String(value);
   // Truncate toward zero rather than round, so a balance just below a whole
   // number (e.g. 0.9999995 on a reject frame) never displays as the full
-  // integer and contradicts the verdict.
-  const truncated = Math.floor(value * 100) / 100;
+  // integer and contradicts the verdict. Math.trunc keeps an essentially-zero
+  // negative dust balance (e.g. -1e-9 from the epsilon-allow spend) reading as
+  // "0.00" rather than a misleading "-0.01".
+  const truncated = Math.trunc(value * 100) / 100;
   return truncated.toFixed(2);
 }
 

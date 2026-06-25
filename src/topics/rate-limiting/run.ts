@@ -187,8 +187,8 @@ export function run(
 
     const refillNarration =
       elapsed > 0
-        ? `${req.id} arrives at t=${req.t}. ${clean(elapsed)} unit(s) passed, so refill adds ${clean(Math.max(0, gained))} token(s): ${clean(before)} to ${clean(tokens)} (max ${capacity}).`
-        : `${req.id} arrives at t=${req.t}. No time has passed since the last refill, so the bucket stays at ${clean(tokens)}.`;
+        ? `${req.id} arrives at t=${req.t}. ${clean(elapsed)} unit(s) passed, so refill adds ${clean(Math.max(0, gained))} token(s): ${show(before)} to ${show(tokens)} (max ${capacity}).`
+        : `${req.id} arrives at t=${req.t}. No time has passed since the last refill, so the bucket stays at ${show(tokens)}.`;
 
     if (
       !emit({
@@ -248,7 +248,7 @@ export function run(
       currentIndex: null,
       line: LINE.loop,
       caption: "Done",
-      narration: `Timeline complete. Allowed ${counters.allowed}, rejected ${counters.rejected} of ${counters.processed} request(s). The bucket holds ${clean(tokens)} of ${capacity} token(s).`,
+      narration: `Timeline complete. Allowed ${counters.allowed}, rejected ${counters.rejected} of ${counters.processed} request(s). The bucket holds ${show(tokens)} of ${capacity} token(s).`,
       highlights: requestHighlights(null, "muted", "muted"),
     });
   }

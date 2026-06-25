@@ -303,6 +303,30 @@ describe("rate-limiting run", () => {
     ).toThrow(/cost/i);
   });
 
+  it("rejects a negative starting token level rather than clamping it", () => {
+    expect(() =>
+      run({
+        capacity: 4,
+        refillRate: 1,
+        cost: 1,
+        startTokens: -10,
+        requests: [{ id: "A", t: 0 }],
+      })
+    ).toThrow(/start/i);
+  });
+
+  it("rejects a starting token level above capacity rather than clamping it", () => {
+    expect(() =>
+      run({
+        capacity: 4,
+        refillRate: 1,
+        cost: 1,
+        startTokens: 5,
+        requests: [{ id: "A", t: 0 }],
+      })
+    ).toThrow(/start/i);
+  });
+
   it("accrues fractional tokens without flooring (real-valued bucket)", () => {
     // capacity 5, refill 0.5/unit, cost 1, empty start.
     //   R1 t0: tokens 0      -> reject
@@ -428,5 +452,26 @@ describe("rate-limiting run allow/reject boundary", () => {
     expect(final.state.tokens).toBeLessThan(1);
     const rejectFrame = steps.find((s) => s.state.phase === "reject");
     expect(rejectFrame?.state.tokens).toBeLessThan(1);
+  });
+
+  it("keeps the refill narration balance faithful at the allow/reject boundary", () => {
+    // A refill brings the bucket to 0.9999995, just below cost 1, so the request
+    // rejects. The refill narration must report that faithful sub-cost balance,
+    // not a 6-decimal value that rounds up to a full "1" and contradicts the
+    // reject frame that immediately follows (the exact case this topic teaches).
+    const steps = run({
+      capacity: 2,
+      refillRate: 0.9999995,
+      cost: 1,
+      startTokens: 0,
+      requests: [{ id: "R1", t: 1 }],
+    });
+    const refill = steps.find((s) => s.state.phase === "refill");
+    const reject = steps.find((s) => s.state.phase === "reject");
+    expect(refill).toBeDefined();
+    expect(reject).toBeDefined();
+    expect(refill!.narration).not.toMatch(/\bto 1\b/);
+    expect(refill!.narration).toContain("0.9999995");
+    expect(reject!.narration).toContain("0.9999995");
   });
 });

@@ -19,8 +19,13 @@ export function validateInput(input: RateLimitInput): string | null {
   if (!Number.isFinite(input.cost) || !(input.cost > 0)) {
     return `Request cost must be a positive number; got ${input.cost}`;
   }
-  if (input.startTokens !== undefined && !Number.isFinite(input.startTokens)) {
-    return `Starting tokens must be a finite number; got ${input.startTokens}`;
+  if (input.startTokens !== undefined) {
+    if (!Number.isFinite(input.startTokens)) {
+      return `Starting tokens must be a finite number; got ${input.startTokens}`;
+    }
+    if (input.startTokens < 0 || input.startTokens > input.capacity) {
+      return `Starting tokens must be between 0 and the capacity ${input.capacity}; got ${input.startTokens}`;
+    }
   }
   if (input.requests.length === 0) {
     return "Provide at least one request: time [id]";
