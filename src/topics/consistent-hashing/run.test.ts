@@ -194,6 +194,71 @@ describe("consistent-hashing run", () => {
     }
   });
 
+  it("assigns a colliding joining vnode that sorts first as the new owner", () => {
+    // ringSize 1 forces pos 0. "A#0" < "B#0", so the joining vnode A#0 sorts
+    // before the existing B#0 at the shared position and becomes k's clockwise
+    // successor. The final frame must reflect that, matching lookupOwner.
+    const input: ConsistentHashingInput = {
+      ringSize: 1,
+      vnodesPerNode: 1,
+      nodes: ["B"],
+      keys: ["k"],
+      change: { op: "join", node: "A" },
+    };
+    const final = last(run(input));
+    expect(final.state.keys.find((k) => k.key === "k")?.owner).toBe("A");
+    expect(final.state.movedKeys).toContain("k");
+    expect(final.counters.moves).toBe(1);
+  });
+
+  it("does not move a colliding joining vnode that sorts after the existing owner", () => {
+    // "C#0" sorts after "B#0" at the shared position, so B keeps k. No move.
+    const input: ConsistentHashingInput = {
+      ringSize: 1,
+      vnodesPerNode: 1,
+      nodes: ["B"],
+      keys: ["k"],
+      change: { op: "join", node: "C" },
+    };
+    const final = last(run(input));
+    expect(final.state.keys.find((k) => k.key === "k")?.owner).toBe("B");
+    expect(final.counters.moves).toBe(0);
+    expect(final.state.movedKeys).toHaveLength(0);
+  });
+
+  it("oracle: join node that sorts first still matches the reference (collisions included)", () => {
+    const rng = makeRng(909090);
+    for (let trial = 0; trial < 200; trial += 1) {
+      const ringSize = 1 + Math.floor(rng() * 64);
+      const vnodesPerNode = 1 + Math.floor(rng() * 3);
+      const nodeCount = 1 + Math.floor(rng() * 4);
+      const nodes = Array.from({ length: nodeCount }, (_, i) => `N${i}`);
+      const keyCount = 1 + Math.floor(rng() * 8);
+      const keys = Array.from({ length: keyCount }, (_, i) => `k${i}`);
+      // "A" sorts before every "N..." label, so at a position collision the
+      // joining vnode sorts first and must steal those keys.
+      const joinNode = "A";
+      const input: ConsistentHashingInput = {
+        ringSize,
+        vnodesPerNode,
+        nodes,
+        keys,
+        change: { op: "join", node: joinNode },
+      };
+      const before = referenceOwners(nodes, input);
+      const after = referenceOwners([...nodes, joinNode], input);
+      const actualChanges = keys.filter((k) => before[k] !== after[k]);
+      const final = last(run(input));
+      expect(final.counters.moves).toBe(actualChanges.length);
+      expect([...final.state.movedKeys].sort()).toEqual(
+        [...actualChanges].sort()
+      );
+      const got: Record<string, string> = {};
+      for (const k of final.state.keys) got[k.key] = k.owner!;
+      expect(got).toEqual(after);
+    }
+  });
+
   it("moves only keys previously owned by the leaving node", () => {
     const leaveInput: ConsistentHashingInput = {
       ...curatedInput,

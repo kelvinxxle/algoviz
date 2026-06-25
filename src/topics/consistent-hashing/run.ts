@@ -26,22 +26,6 @@ interface MutableAssignment {
   ownerVnode: string | null;
 }
 
-/** Is `pos` inside the clockwise arc (fromExclusive, toInclusive] on the ring? */
-function inArc(
-  fromExclusive: number,
-  toInclusive: number,
-  pos: number
-): boolean {
-  // A zero-length arc (a duplicate ring position) owns nothing new: the vnode
-  // that sorts first at that position already owns it.
-  if (fromExclusive === toInclusive) return false;
-  if (fromExclusive < toInclusive) {
-    return pos > fromExclusive && pos <= toInclusive;
-  }
-  // The arc wraps past 0.
-  return pos > fromExclusive || pos <= toInclusive;
-}
-
 /**
  * Consistent hashing as a deterministic sequence of frames.
  *
@@ -190,6 +174,11 @@ export function run(
     ringPositions.splice(lo, 0, vnode.pos);
   };
 
+  /** Resolve the owner vnode at `pos` without mutating counters, for selecting
+   * candidates. The single counted lookup happens in reassign. */
+  const ownerAt = (pos: number): VirtualNode =>
+    vnodes[ringSuccessor(ringPositions, pos).index];
+
   const lookupOwner = (pos: number): VirtualNode => {
     const result = ringSuccessor(ringPositions, pos);
     counters.lookups += 1;
@@ -286,7 +275,14 @@ export function run(
     const { op, node } = input.change;
     if (op === "join") {
       if (!placeNode(node, "change", "active", node)) return steps;
-      const affected = keysInNodeArcs(vnodes, node, input.keys, assignments);
+      // The joining node owns exactly the keys whose clockwise successor now
+      // resolves to it. This mirrors the leave path and is correct even when a
+      // joining vnode collides on an exact ring position and sorts first; an
+      // arc model would miss that tie. ownerAt is counter-free so reassign stays
+      // the single place that counts probes.
+      const affected = input.keys.filter(
+        (key) => ownerAt(assignments.get(key)!.pos).node === node
+      );
       if (!reassign(affected, node)) return steps;
     } else {
       if (!emitLeave(node)) return steps;
@@ -405,36 +401,4 @@ function describeLoad(keys: readonly KeyAssignment[]): string {
     .sort((a, b) => (a[0] < b[0] ? -1 : 1))
     .map(([node, count]) => `${node} owns ${count}`)
     .join(", ");
-}
-
-/**
- * Keys that fall into one of `node`'s newly inserted arcs. A key is in such an
- * arc when its clockwise predecessor on the new ring is the vnode just before
- * one of `node`'s vnodes, so `node` becomes its new owner. These are exactly the
- * keys that move when the node joins, roughly K/N of them.
- */
-function keysInNodeArcs(
-  vnodes: readonly VirtualNode[],
-  node: string,
-  keys: readonly string[],
-  assignments: Map<string, MutableAssignment>
-): string[] {
-  const len = vnodes.length;
-  const arcs: Array<{ from: number; to: number }> = [];
-  let ownsWholeRing = false;
-  for (let i = 0; i < len; i += 1) {
-    if (vnodes[i].node !== node) continue;
-    const prevIndex = (i - 1 + len) % len;
-    // The node's vnode is the only one on the ring, so it owns every position.
-    if (prevIndex === i) {
-      ownsWholeRing = true;
-      continue;
-    }
-    const prev = vnodes[prevIndex];
-    arcs.push({ from: prev.pos, to: vnodes[i].pos });
-  }
-  return keys.filter((key) => {
-    const pos = assignments.get(key)!.pos;
-    return ownsWholeRing || arcs.some((arc) => inArc(arc.from, arc.to, pos));
-  });
 }
