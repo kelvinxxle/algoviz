@@ -164,17 +164,20 @@ export function run(
       const matched = i < node.keys.length && node.keys[i] === key;
 
       if (matched) {
+        const isSearch = op === "search";
         emit({
           op,
-          line: op === "search" ? LINE.searchFound : LINE.searchFound,
-          caption: `Found ${key}`,
+          line: isSearch ? LINE.searchFound : LINE.insertDescend,
+          caption: isSearch ? `Found ${key}` : `${key} present`,
           activeNodeId: nodeId,
           activeKey: key,
           comparedIndex: i,
           highlights: highlightsFor(nodeId, ancestors, [
             [`key:${nodeId}:${i}`, "path"],
           ]),
-          narration: `Compare ${key} against ${node.id}: ${key} matches the key at slot ${i}.`,
+          narration: isSearch
+            ? `Compare ${key} against ${node.id}: ${key} matches the key at slot ${i}.`
+            : `Descending to insert ${key}: it already sits at slot ${i} of ${node.id}.`,
         });
         return { path, found: true, index: i };
       }
@@ -319,7 +322,7 @@ export function run(
       const leafId = path[path.length - 1];
       emit({
         op: "insert",
-        line: LINE.searchFound,
+        line: LINE.insertDescend,
         caption: `${key} present`,
         activeNodeId: leafId,
         activeKey: key,

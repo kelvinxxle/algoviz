@@ -124,6 +124,32 @@ describe("b-trees run", () => {
     expect(() => run(ORDER4([1, 2, 3], 2.5))).toThrow();
   });
 
+  it("keeps duplicate-insert frames inside the insert pseudocode block", () => {
+    // Pseudocode lines 1-5 are the search() block, 6-12 the insert() block.
+    // A duplicate insert is a reachable, designed path (the sandbox allows
+    // `insert: 5 5`), but it must never highlight a search-block line while the
+    // operation is an insert. Every insert frame that carries a line must point
+    // at the insert block (line >= 6).
+    const steps = run(ORDER4([10, 20, 10]));
+    const insertLines = steps
+      .filter((s) => s.state.op === "insert" && s.line !== undefined)
+      .map((s) => s.line as number);
+    expect(insertLines.length).toBeGreaterThan(0);
+    for (const line of insertLines) {
+      expect(line).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  it("keeps a real search-found frame on the search pseudocode line", () => {
+    const steps = run(ORDER4([10, 20, 30], 20));
+    const foundFrame = steps.find(
+      (s) => s.state.op === "search" && s.state.outcome === "found"
+    );
+    expect(foundFrame).toBeDefined();
+    // searchFound is line 3, inside the search() block.
+    expect(foundFrame?.line).toBe(3);
+  });
+
   it("inserts the first key into a single leaf root", () => {
     const state = finalState(ORDER4([7]));
     expect(state.rootId).not.toBeNull();
