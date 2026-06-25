@@ -17,7 +17,7 @@ export const topics: Topic[] = [
     slug: "dynamic-programming",
     title: "Dynamic Programming",
     flavor: "canonical",
-    status: "coming-soon",
+    status: "available",
     blurb: "Overlapping subproblems made visible.",
     complexity: "O(n*W)",
     icon: "rebase_edit",

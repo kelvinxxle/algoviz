@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import type { ComponentType } from "react";
 import type { AlgorithmTopic, AnyAlgorithmTopic, Highlight } from "./contract";
 import { dijkstraTopic } from "@/topics/dijkstra/topic";
+import { dynamicProgrammingTopic } from "@/topics/dynamic-programming/topic";
 
 /**
  * Props every topic renderer receives. The shared shell passes the resolved
@@ -50,12 +51,22 @@ const DijkstraRenderer = dynamic(() =>
   )
 );
 
+const DynamicProgrammingRenderer = dynamic(() =>
+  import("@/components/dynamic-programming/DynamicProgrammingRenderer").then(
+    (m) => m.DynamicProgrammingRenderer
+  )
+);
+
 /**
  * Slug to topic module. Adding a future topic is: author run() + bundle + a
  * renderer, then register one entry here. No shared engine, shell, or page edit.
  */
 const registry: Record<string, TopicModule> = {
   [dijkstraTopic.slug]: defineTopic(dijkstraTopic, DijkstraRenderer),
+  [dynamicProgrammingTopic.slug]: defineTopic(
+    dynamicProgrammingTopic,
+    DynamicProgrammingRenderer
+  ),
 };
 
 export function getTopicModule(slug: string): TopicModule | undefined {
