@@ -80,7 +80,7 @@ export const topics: Topic[] = [
     slug: "lru-cache",
     title: "LRU Cache",
     flavor: "systems",
-    status: "coming-soon",
+    status: "available",
     blurb: "The eviction policy you configured but never saw.",
     complexity: "O(1)",
     icon: "history",
