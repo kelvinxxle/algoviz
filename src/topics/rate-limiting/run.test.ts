@@ -149,7 +149,7 @@ describe("rate-limiting run", () => {
       { phase: "reject", line: 9, idx: 2, tokens: 0 },
       { phase: "refill", line: 4, idx: 3, tokens: 1 },
       { phase: "allow", line: 7, idx: 3, tokens: 0 },
-      { phase: "done", line: 2, idx: null, tokens: 0 },
+      { phase: "done", line: undefined, idx: null, tokens: 0 },
     ]);
   });
 
@@ -325,6 +325,40 @@ describe("rate-limiting run", () => {
         requests: [{ id: "A", t: 0 }],
       })
     ).toThrow(/start/i);
+  });
+
+  it("rejects an empty request id the parser could never produce", () => {
+    expect(() =>
+      run({
+        capacity: 2,
+        refillRate: 1,
+        cost: 1,
+        requests: [{ id: "", t: 0 }],
+      })
+    ).toThrow(/id/i);
+  });
+
+  it("rejects a request id containing whitespace, mirroring the parser", () => {
+    // The parser splits a line on whitespace, so a parsed id is always a single
+    // whitespace-free token. A whitespace id would also break the
+    // `request:${id}` highlight key and the data-request DOM selector.
+    expect(() =>
+      run({
+        capacity: 2,
+        refillRate: 1,
+        cost: 1,
+        requests: [{ id: "a b", t: 0 }],
+      })
+    ).toThrow(/id/i);
+  });
+
+  it("highlights no pseudocode line on the terminal done frame", () => {
+    // Every sibling topic omits `line` on its terminal frame; a lingering loop
+    // line would tell the logic panel the algorithm is still iterating after it
+    // has finished.
+    const done = last(run(INPUT));
+    expect(done.state.phase).toBe("done");
+    expect(done.line).toBeUndefined();
   });
 
   it("accrues fractional tokens without flooring (real-valued bucket)", () => {

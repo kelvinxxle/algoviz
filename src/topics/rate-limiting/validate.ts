@@ -33,6 +33,9 @@ export function validateInput(input: RateLimitInput): string | null {
 
   const seen = new Set<string>();
   for (const req of input.requests) {
+    if (req.id === "" || /\s/.test(req.id)) {
+      return `Request id must be non-empty and contain no whitespace; got "${req.id}"`;
+    }
     if (!Number.isFinite(req.t) || req.t < 0) {
       return `Request "${req.id}" has an invalid time ${req.t}. Requests arrive at t >= 0.`;
     }

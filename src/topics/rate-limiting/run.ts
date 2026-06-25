@@ -13,7 +13,6 @@ import { validateInput } from "./validate";
  */
 const LINE = {
   init: 1,
-  loop: 2,
   refill: 4,
   allow: 7,
   reject: 9,
@@ -114,7 +113,7 @@ export function run(
     phase: RatePhase;
     time: number;
     currentIndex: number | null;
-    line: number;
+    line?: number;
     caption: string;
     narration: string;
     highlights: Highlight[];
@@ -131,7 +130,7 @@ export function run(
       narration: frame.narration,
       highlights: frame.highlights,
       counters: { ...counters },
-      line: frame.line,
+      ...(frame.line !== undefined ? { line: frame.line } : {}),
       caption: frame.caption,
     });
     return true;
@@ -246,7 +245,6 @@ export function run(
       phase: "done",
       time: lastRefillTime,
       currentIndex: null,
-      line: LINE.loop,
       caption: "Done",
       narration: `Timeline complete. Allowed ${counters.allowed}, rejected ${counters.rejected} of ${counters.processed} request(s). The bucket holds ${show(tokens)} of ${capacity} token(s).`,
       highlights: requestHighlights(null, "muted", "muted"),
