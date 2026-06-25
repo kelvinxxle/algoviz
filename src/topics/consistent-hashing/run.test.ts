@@ -295,4 +295,40 @@ describe("consistent-hashing run", () => {
       run({ ringSize: 100, vnodesPerNode: 1, nodes: [], keys: ["k"] })
     ).toThrow(/node/i);
   });
+
+  it("throws when a join names an existing node", () => {
+    expect(() =>
+      run({
+        ringSize: 100,
+        vnodesPerNode: 1,
+        nodes: ["A"],
+        keys: ["k"],
+        change: { op: "join", node: "A" },
+      })
+    ).toThrow(/already a node/i);
+  });
+
+  it("throws when a leave names an absent node", () => {
+    expect(() =>
+      run({
+        ringSize: 100,
+        vnodesPerNode: 1,
+        nodes: ["A"],
+        keys: ["k"],
+        change: { op: "leave", node: "Z" },
+      })
+    ).toThrow(/not a node/i);
+  });
+
+  it("throws when a leave would empty the ring of its last node", () => {
+    expect(() =>
+      run({
+        ringSize: 100,
+        vnodesPerNode: 1,
+        nodes: ["A"],
+        keys: ["k"],
+        change: { op: "leave", node: "A" },
+      })
+    ).toThrow(/at least one node must remain/i);
+  });
 });

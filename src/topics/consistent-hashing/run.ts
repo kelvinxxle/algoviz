@@ -71,6 +71,24 @@ export function run(
     throw new Error("Provide at least one node to place on the ring");
   }
 
+  // Re-validate the membership change here so run() stays self-consistent and
+  // honest for any caller, not only sandbox input that already passed parseInput.
+  if (input.change) {
+    const { op, node } = input.change;
+    const exists = input.nodes.includes(node);
+    if (op === "join" && exists) {
+      throw new Error(`Cannot join "${node}": it is already a node`);
+    }
+    if (op === "leave" && !exists) {
+      throw new Error(`Cannot leave "${node}": it is not a node`);
+    }
+    if (op === "leave" && input.nodes.length <= 1) {
+      throw new Error(
+        `Cannot leave "${node}": at least one node must remain on the ring`
+      );
+    }
+  }
+
   const vnodes: VirtualNode[] = [];
   // Ascending ring positions, kept in lockstep with `vnodes`. Maintaining it on
   // membership changes (not rebuilding per lookup) keeps each lookup a genuine
