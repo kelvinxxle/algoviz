@@ -149,6 +149,12 @@ describe("LruDiagram", () => {
       "data-role",
       "rejected"
     );
+    // The evict frame is emitted after removeTail, so the map no longer points
+    // to B; its row must not claim a live "ptr -> node" pointer, but it is an
+    // evicted key (was resident), distinct from a never-resident miss.
+    const mapRow = container.querySelector('[data-map="B"]');
+    expect(mapRow?.textContent).not.toContain("ptr");
+    expect(mapRow?.textContent).toMatch(/evict|drop|cleared/i);
     expect(getByTestId("lru-trace").textContent).toContain("B");
   });
 

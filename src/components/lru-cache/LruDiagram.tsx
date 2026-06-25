@@ -59,16 +59,22 @@ function MapPanel({
   roles: Map<string, HighlightRole>;
 }): ReactNode {
   // Each row is a key the map currently points at, plus on a miss the probed
-  // key that is absent (rendered so run()'s rejected highlight is observable).
-  // `missing` rows have no node behind them, so they get an honest label.
-  // Sort by key so a slot keeps its place as recency changes: the hash map has
-  // no order of its own, only the linked list does. On an eviction frame the
-  // dropped key is shown alongside the residents so its rejected emphasis lands.
-  const rows: { key: string; missing: boolean }[] = [
-    ...order.map((n) => ({ key: n.key, missing: false })),
-    ...(evicted ? [{ key: evicted.key, missing: false }] : []),
-    ...(missedKey ? [{ key: missedKey, missing: true }] : []),
+  // key that is absent and on an evict the key just dropped (both rendered so
+  // run()'s rejected highlight is observable). The label is honest per kind:
+  // resident keys point at a node; an evicted key's pointer was just cleared;
+  // a missed key was never resident. Sort by key so a slot keeps its place as
+  // recency changes: the hash map has no order of its own, only the list does.
+  type RowKind = "resident" | "evicting" | "missing";
+  const rows: { key: string; kind: RowKind }[] = [
+    ...order.map((n) => ({ key: n.key, kind: "resident" as RowKind })),
+    ...(evicted ? [{ key: evicted.key, kind: "evicting" as RowKind }] : []),
+    ...(missedKey ? [{ key: missedKey, kind: "missing" as RowKind }] : []),
   ].sort((a, b) => (a.key < b.key ? -1 : 1));
+  const LABEL: Record<RowKind, string> = {
+    resident: "ptr -> node",
+    evicting: "pointer cleared",
+    missing: "absent",
+  };
   return (
     <div className="flex min-w-[160px] flex-col gap-sm">
       <h3 className="flex items-center gap-2 font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant">
@@ -101,7 +107,7 @@ function MapPanel({
                 {row.key}
               </span>
               <span className="font-label-caps text-[9px] uppercase tracking-wider text-outline">
-                {row.missing ? "absent" : "ptr -> node"}
+                {LABEL[row.kind]}
               </span>
             </motion.div>
           );
