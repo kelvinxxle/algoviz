@@ -91,7 +91,7 @@ export function PlayerControls({
         </button>
       </div>
 
-      <div className="flex flex-1 items-center gap-lg pl-lg">
+      <div className="flex min-w-0 flex-1 items-center gap-lg pl-lg">
         <input
           type="range"
           aria-label="Scrub steps"
@@ -99,7 +99,7 @@ export function PlayerControls({
           max={lastIndex}
           value={index}
           onChange={(e) => onSeek(Number(e.target.value))}
-          className="h-1 flex-1 cursor-pointer appearance-none bg-surface-container-high accent-primary"
+          className="h-1 min-w-0 flex-1 cursor-pointer appearance-none bg-surface-container-high accent-primary"
         />
         <div className="flex items-center gap-sm">
           <span className="font-label-caps text-[10px] text-on-surface-variant">
