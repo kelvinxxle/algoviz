@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import { ConsistentHashingRing } from "./ConsistentHashingRing";
+import {
+  ConsistentHashingRing,
+  PALETTE,
+  colorIndexOf,
+} from "./ConsistentHashingRing";
 import type { ConsistentHashingState } from "@/topics/consistent-hashing/types";
 import type { Highlight } from "@/engine/contract";
 
@@ -21,6 +25,7 @@ const state: ConsistentHashingState = {
   link: { fromPos: 122, toPos: 140 },
   changedNode: null,
   movedKeys: [],
+  paletteOrder: ["A", "B"],
 };
 
 const highlights: Highlight[] = [
@@ -29,6 +34,16 @@ const highlights: Highlight[] = [
 ];
 
 describe("ConsistentHashingRing", () => {
+  it("colors a node by its append-only palette position, not live membership", () => {
+    // C keeps index 2 even after B leaves the ring, because paletteOrder is
+    // append-only. A bystander color stays put across a membership change.
+    const full = ["A", "B", "C"];
+    expect(colorIndexOf("C", full)).toBe(2);
+    expect(colorIndexOf("C", full)).toBe(2 % PALETTE.length);
+    // An unknown node falls back to the first color rather than a negative index.
+    expect(colorIndexOf("Z", full)).toBe(0);
+  });
+
   it("renders one element per virtual node", () => {
     const { container } = render(
       <ConsistentHashingRing state={state} highlights={highlights} />

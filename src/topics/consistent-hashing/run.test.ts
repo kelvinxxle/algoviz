@@ -103,6 +103,80 @@ describe("consistent-hashing run", () => {
     expect(loadOf(distribute!.state.keys)).toEqual({ A: 3, B: 3, C: 4 });
   });
 
+  it("does not claim 'several' virtual nodes when each node places only one", () => {
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 1,
+      nodes: ["A", "B"],
+      keys: ["k1"],
+    };
+    const placeFrames = run(input).filter((s) =>
+      s.narration.startsWith("Place virtual node")
+    );
+    expect(placeFrames.length).toBeGreaterThan(0);
+    for (const frame of placeFrames) {
+      expect(frame.narration).not.toMatch(/several/i);
+    }
+  });
+
+  it("names the real replica count in placement narration when many", () => {
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 3,
+      nodes: ["A"],
+      keys: ["k1"],
+    };
+    const placeFrames = run(input).filter((s) =>
+      s.narration.startsWith("Place virtual node")
+    );
+    expect(placeFrames.some((s) => /3 virtual nodes/.test(s.narration))).toBe(
+      true
+    );
+  });
+
+  it("lists a node owning zero keys in the distribution narration", () => {
+    // Two nodes but a single key: exactly one node owns it and the other owns
+    // none. The distribution line must still show the idle node as "owns 0".
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 1,
+      nodes: ["A", "B"],
+      keys: ["k1"],
+    };
+    const distribute = run(input).find((s) => s.state.phase === "distribute")!;
+    const loads = loadOf(distribute.state.keys);
+    const zeroNode = ["A", "B"].find((n) => (loads[n] ?? 0) === 0);
+    expect(zeroNode).toBeDefined();
+    expect(distribute.narration).toContain(`${zeroNode} owns 0`);
+  });
+
+  it("keeps every node's palette index stable when a middle node leaves", () => {
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 2,
+      nodes: ["A", "B", "C"],
+      keys: ["k1", "k2", "k3", "k4"],
+      change: { op: "leave", node: "B" },
+    };
+    const steps = run(input);
+    const distribute = steps.find((s) => s.state.phase === "distribute")!;
+    const done = last(steps);
+    // paletteOrder is append-only: the leaving node is never spliced out, so the
+    // order (and therefore every node's color index) is identical before and
+    // after the leave. A bystander never changes color mid-animation.
+    expect([...done.state.paletteOrder]).toEqual([
+      ...distribute.state.paletteOrder,
+    ]);
+    expect(distribute.state.paletteOrder).toContain("B");
+    for (const node of ["A", "C"]) {
+      expect(done.state.paletteOrder.indexOf(node)).toBe(
+        distribute.state.paletteOrder.indexOf(node)
+      );
+    }
+    // The leaving node is gone from the live membership in the final frame.
+    expect(done.state.nodes).not.toContain("B");
+  });
+
   it("moves exactly the three keys in the joining node's arcs", () => {
     const final = last(run(curatedInput));
     expect([...final.state.movedKeys].sort()).toEqual(

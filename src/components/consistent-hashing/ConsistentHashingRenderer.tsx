@@ -50,8 +50,7 @@ export function ConsistentHashingRenderer({
           Keys per node
         </span>
         {[...load.entries()].map(([node, count]) => {
-          const color =
-            PALETTE[colorIndexOf(node, state.nodes, state.changedNode)];
+          const color = PALETTE[colorIndexOf(node, state.paletteOrder)];
           return (
             <div
               key={node}

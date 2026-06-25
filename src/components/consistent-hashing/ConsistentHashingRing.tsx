@@ -40,15 +40,15 @@ function roleMap(highlights: readonly Highlight[]): Map<string, HighlightRole> {
   return map;
 }
 
-/** Stable color index for a physical node within the current membership. */
+/**
+ * Stable color index for a physical node. `paletteOrder` is append-only (a
+ * leaving node is never removed), so every node keeps its hue for the whole run.
+ */
 export function colorIndexOf(
   node: string,
-  order: readonly string[],
-  changedNode: string | null
+  paletteOrder: readonly string[]
 ): number {
-  const ordered = [...order];
-  if (changedNode && !ordered.includes(changedNode)) ordered.push(changedNode);
-  const idx = ordered.indexOf(node);
+  const idx = paletteOrder.indexOf(node);
   return idx < 0 ? 0 : idx % PALETTE.length;
 }
 
@@ -66,7 +66,7 @@ export function ConsistentHashingRing({
   highlights: readonly Highlight[];
 }): ReactNode {
   const roles = roleMap(highlights);
-  const { ringSize, nodes, changedNode } = state;
+  const { ringSize, paletteOrder } = state;
 
   return (
     <svg
@@ -112,7 +112,7 @@ export function ConsistentHashingRing({
       <g>
         {state.vnodes.map((v) => {
           const role: Role = roles.get(`vnode:${v.label}`) ?? "resting";
-          const colorIndex = colorIndexOf(v.node, nodes, changedNode);
+          const colorIndex = colorIndexOf(v.node, paletteOrder);
           const p = ringPoint(v.pos, ringSize, RING.radius);
           const emphasized = role === "active" || role === "candidate";
           return (
@@ -141,7 +141,7 @@ export function ConsistentHashingRing({
         {state.keys.map((k) => {
           const role: Role = roles.get(`key:${k.key}`) ?? "resting";
           const colorIndex =
-            k.owner === null ? -1 : colorIndexOf(k.owner, nodes, changedNode);
+            k.owner === null ? -1 : colorIndexOf(k.owner, paletteOrder);
           const fill =
             colorIndex < 0
               ? "rgb(var(--color-surface-bright))"

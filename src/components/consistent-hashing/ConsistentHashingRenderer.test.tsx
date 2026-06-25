@@ -22,6 +22,7 @@ const state: ConsistentHashingState = {
   link: null,
   changedNode: null,
   movedKeys: [],
+  paletteOrder: ["A", "B", "C"],
 };
 
 describe("ConsistentHashingRenderer", () => {

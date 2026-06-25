@@ -90,6 +90,8 @@ export function run(
   // O(log(N*V)) binary search, matching the advertised complexity.
   const ringPositions: number[] = [];
   const nodes: string[] = [];
+  // Append-only node order for stable render colors; never spliced on leave.
+  const paletteOrder: string[] = [];
   const assignments = new Map<string, MutableAssignment>();
   for (const key of input.keys) {
     assignments.set(key, {
@@ -134,6 +136,7 @@ export function run(
         link: frame.link ?? null,
         changedNode: frame.changedNode ?? null,
         movedKeys: [...movedKeys],
+        paletteOrder: [...paletteOrder],
       },
       narration: frame.narration,
       highlights: frame.highlights,
@@ -201,6 +204,11 @@ export function run(
     changedNode: string | null
   ): boolean => {
     nodes.push(node);
+    paletteOrder.push(node);
+    const spread =
+      vnodesPerNode === 1
+        ? "With one virtual node each, a node owns a single arc; adding more virtual nodes per node would split its load into multiple arcs so no one owns a giant slice."
+        : `Each physical node spreads ${vnodesPerNode} virtual nodes around the ring so no single node owns one giant arc.`;
     for (let r = 0; r < vnodesPerNode; r += 1) {
       const label = `${node}#${r}`;
       const vnode: VirtualNode = {
@@ -218,7 +226,7 @@ export function run(
           caption: `Place ${label}`,
           activeVnode: label,
           changedNode,
-          narration: `Place virtual node ${label} at ring position ${vnode.pos}. Each physical node spreads several virtual nodes around the ring so no single node owns one giant arc.`,
+          narration: `Place virtual node ${label} at ring position ${vnode.pos}. ${spread}`,
           highlights: restingHighlights([[`vnode:${label}`, role]]),
         })
       ) {
@@ -256,7 +264,7 @@ export function run(
     }
   }
 
-  const load = describeLoad(snapshotKeys());
+  const load = describeLoad(snapshotKeys(), nodes);
   if (
     !emit({
       phase: "distribute",
@@ -392,8 +400,12 @@ function firstDuplicate(values: readonly string[]): string | null {
   return null;
 }
 
-function describeLoad(keys: readonly KeyAssignment[]): string {
+function describeLoad(
+  keys: readonly KeyAssignment[],
+  nodes: readonly string[]
+): string {
   const load = new Map<string, number>();
+  for (const node of nodes) load.set(node, 0);
   for (const k of keys) {
     if (k.owner) load.set(k.owner, (load.get(k.owner) ?? 0) + 1);
   }

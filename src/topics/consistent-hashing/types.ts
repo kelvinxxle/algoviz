@@ -72,6 +72,13 @@ export interface ConsistentHashingState {
   /** Physical node joining or leaving during a change phase, if any. */
   readonly changedNode: string | null;
   /**
+   * Append-only list of physical nodes in first-placement order, used only to
+   * assign each node a stable render color. Unlike `nodes`, a leaving node is
+   * never removed, so a bystander node keeps its color across a membership
+   * change. It carries no algorithmic meaning and never feeds back into `run`.
+   */
+  readonly paletteOrder: readonly string[];
+  /**
    * Cumulative set of keys relocated so far by the membership change. It grows
    * across the move frames and never resets, so the final frame holds every key
    * that moved.
