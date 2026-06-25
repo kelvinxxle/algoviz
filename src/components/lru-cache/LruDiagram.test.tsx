@@ -15,6 +15,7 @@ const state: LruState = {
   outcome: "hit",
   evicted: null,
   lastValue: 1,
+  promoted: false,
 };
 
 const highlights: Highlight[] = [
@@ -86,6 +87,33 @@ describe("LruDiagram", () => {
     expect(getByTestId("lru-telemetry").textContent).toMatch(/hit/i);
   });
 
+  it("does not claim the node moved on the pre-promotion lookup-hit frame", () => {
+    // The lookup frame reports the hit but the node has NOT been spliced yet.
+    const lookup: LruState = { ...state, promoted: false };
+    const { getByTestId } = render(
+      <LruDiagram state={lookup} highlights={highlights} />
+    );
+    const text = getByTestId("lru-telemetry").textContent ?? "";
+    expect(text).toMatch(/hit/i);
+    expect(text).not.toMatch(/move|head/i);
+  });
+
+  it("states the move to head only on the promote frame", () => {
+    const promote: LruState = {
+      ...state,
+      order: [
+        { key: "A", value: 1 },
+        { key: "C", value: 3 },
+        { key: "B", value: 2 },
+      ],
+      promoted: true,
+    };
+    const { getByTestId } = render(
+      <LruDiagram state={promote} highlights={highlights} />
+    );
+    expect(getByTestId("lru-telemetry").textContent).toMatch(/head/i);
+  });
+
   it("names the evicted key on an eviction frame", () => {
     const evictState: LruState = {
       capacity: 2,
@@ -97,6 +125,7 @@ describe("LruDiagram", () => {
       outcome: "evict",
       evicted: { key: "B", value: 2 },
       lastValue: null,
+      promoted: false,
     };
     const { getByTestId } = render(
       <LruDiagram
@@ -115,6 +144,7 @@ describe("LruDiagram", () => {
       outcome: "idle",
       evicted: null,
       lastValue: null,
+      promoted: false,
     };
     const { getByTestId, container } = render(
       <LruDiagram state={empty} highlights={[]} />

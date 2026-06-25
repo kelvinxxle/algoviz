@@ -26,10 +26,14 @@ function roleMap(highlights: readonly Highlight[]): Map<string, HighlightRole> {
 }
 
 function telemetry(state: LruState): string {
-  const { op, outcome, evicted, lastValue } = state;
+  const { op, outcome, evicted, lastValue, promoted } = state;
   switch (outcome) {
     case "hit":
-      return `get(${op?.key}) -> CACHE HIT -> value ${lastValue} -> move to head`;
+      // A hit splits into a lookup frame (node not yet moved) and a promote
+      // frame (node spliced to head). Only the promote frame may claim the move.
+      return promoted
+        ? `get(${op?.key}) -> CACHE HIT -> value ${lastValue} -> moved to head`
+        : `get(${op?.key}) -> CACHE HIT -> value ${lastValue}`;
     case "miss":
       return `get(${op?.key}) -> CACHE MISS -> key not resident`;
     case "insert":

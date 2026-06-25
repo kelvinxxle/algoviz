@@ -41,6 +41,30 @@ export function run(
     );
   }
 
+  // Mirror the parser's guarantees so a direct, curated, or programmatic caller
+  // cannot produce frames the sandbox parser would reject. The snapshot and the
+  // narration must never describe an operation the input never validly contained.
+  if (input.ops.length === 0) {
+    throw new Error(
+      "Provide at least one operation: put key value, or get key"
+    );
+  }
+  for (const op of input.ops) {
+    if (op.kind !== "get" && op.kind !== "put") {
+      throw new Error(
+        `Unknown operation kind "${(op as { kind: string }).kind}"; use get or put`
+      );
+    }
+    if (typeof op.key !== "string") {
+      throw new Error("Operation key must be a string");
+    }
+    if (op.kind === "put" && !Number.isFinite(op.value)) {
+      throw new Error(
+        `put("${op.key}") value must be a finite number; got ${op.value}`
+      );
+    }
+  }
+
   const cap = options.maxSteps ?? Infinity;
   const list = new LruList();
   const counters: Counters = {
@@ -61,6 +85,7 @@ export function run(
     op?: LruState["op"];
     evicted?: LruNode | null;
     lastValue?: number | null;
+    promoted?: boolean;
     highlights: Highlight[];
   }): boolean => {
     if (capped()) return false;
@@ -73,6 +98,7 @@ export function run(
         outcome: frame.outcome,
         evicted: frame.evicted ?? null,
         lastValue: frame.lastValue ?? null,
+        promoted: frame.promoted ?? false,
       },
       narration: frame.narration,
       highlights: frame.highlights,
@@ -145,6 +171,7 @@ export function run(
           outcome: "hit",
           op: { kind: "get", key: op.key },
           lastValue: value,
+          promoted: true,
           narration: `Splice ${op.key} to the head: it is now the most-recently-used entry. Unlink it and relink at the head, six pointer updates, no scan.`,
           highlights: present([
             [`node:${op.key}`, "candidate"],
@@ -167,6 +194,7 @@ export function run(
           caption: `Update ${op.key}`,
           outcome: "update",
           op: { kind: "put", key: op.key, value: op.value },
+          promoted: true,
           narration: `put(${op.key}, ${op.value}): the key already exists, so overwrite its value and promote it to the head.`,
           highlights: present([
             [`node:${op.key}`, "candidate"],

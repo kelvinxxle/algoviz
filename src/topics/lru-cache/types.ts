@@ -61,4 +61,13 @@ export interface LruState {
   readonly evicted: LruNode | null;
   /** Value a `get` returned this frame, else null (including on a miss). */
   readonly lastValue: number | null;
+  /**
+   * True only on a frame where the active node was spliced to the head this
+   * frame (the promote frame of a hit, or a put that updates an existing key).
+   * A cache hit splits into a lookup frame (`false`, order unchanged) and a
+   * promote frame (`true`), so the snapshot itself tells the renderer whether
+   * the recency move has happened yet. This keeps telemetry honest: the
+   * pre-promotion frame must not claim the node has moved.
+   */
+  readonly promoted: boolean;
 }

@@ -192,4 +192,30 @@ describe("lru run", () => {
   it("rejects a non-positive capacity with a clear error", () => {
     expect(() => run({ capacity: 0, ops: [] })).toThrow(/capacity/i);
   });
+
+  it("rejects an empty operation program the way the parser does", () => {
+    expect(() => run({ capacity: 2, ops: [] })).toThrow(/operation/i);
+  });
+
+  it("rejects a put with a non-finite value the way the parser does", () => {
+    expect(() =>
+      run({ capacity: 2, ops: [{ kind: "put", key: "A", value: NaN }] })
+    ).toThrow(/finite|number/i);
+  });
+
+  it("rejects an operation whose kind is neither get nor put", () => {
+    const bad = {
+      capacity: 2,
+      ops: [{ kind: "del", key: "A" }],
+    } as unknown as LruInput;
+    expect(() => run(bad)).toThrow(/get|put|kind/i);
+  });
+
+  it("rejects a non-string key", () => {
+    const bad = {
+      capacity: 2,
+      ops: [{ kind: "get", key: 7 }],
+    } as unknown as LruInput;
+    expect(() => run(bad)).toThrow(/key/i);
+  });
 });
