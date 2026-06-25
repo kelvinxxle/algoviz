@@ -88,7 +88,7 @@ describe("union-find run", () => {
     expect(compressing?.state.compressed).toContain("D");
   });
 
-  it("keeps the forest shallow: no node is more than two hops from its root", () => {
+  it("keeps the forest shallow: every node is at most one hop from its root after path compression", () => {
     const state = finalState(ORACLE);
     const depth = (x: string): number => {
       let d = 0;
