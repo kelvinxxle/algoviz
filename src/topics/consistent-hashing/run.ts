@@ -70,6 +70,17 @@ export function run(
   if (input.nodes.length === 0) {
     throw new Error("Provide at least one node to place on the ring");
   }
+  const duplicateNode = firstDuplicate(input.nodes);
+  if (duplicateNode !== null) {
+    throw new Error(`Duplicate node "${duplicateNode}"`);
+  }
+  if (input.keys.length === 0) {
+    throw new Error("Provide at least one key to place on the ring");
+  }
+  const duplicateKey = firstDuplicate(input.keys);
+  if (duplicateKey !== null) {
+    throw new Error(`Duplicate key "${duplicateKey}"`);
+  }
 
   // Re-validate the membership change here so run() stays self-consistent and
   // honest for any caller, not only sandbox input that already passed parseInput.
@@ -352,8 +363,16 @@ export function run(
 
   function emitDone(): void {
     const total = input.keys.length;
+    // The K/N fraction is measured against the node count at the moment of the
+    // change: after a join the new node is included; after a leave the departing
+    // node still counted, so use the pre-change total rather than the now-smaller
+    // live `nodes` array.
+    const knNodes =
+      input.change && input.change.op === "leave"
+        ? input.nodes.length
+        : nodes.length;
     const changeNote = input.change
-      ? `${movedKeys.length} of ${total} keys moved, only the ones in ${input.change.node}'s arcs. The other ${total - movedKeys.length} stayed exactly where they were. On average a single membership change touches about K/N keys, here ${total} keys over ${nodes.length} nodes.`
+      ? `${movedKeys.length} of ${total} keys moved, only the ones in ${input.change.node}'s arcs. The other ${total - movedKeys.length} stayed exactly where they were. On average a single membership change touches about K/N keys, here ${total} keys over ${knNodes} nodes.`
       : `All ${total} keys are assigned. No membership change was requested.`;
     emit({
       phase: "done",
@@ -366,6 +385,15 @@ export function run(
       ),
     });
   }
+}
+
+function firstDuplicate(values: readonly string[]): string | null {
+  const seen = new Set<string>();
+  for (const value of values) {
+    if (seen.has(value)) return value;
+    seen.add(value);
+  }
+  return null;
 }
 
 function describeLoad(keys: readonly KeyAssignment[]): string {

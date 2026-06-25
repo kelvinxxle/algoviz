@@ -71,6 +71,10 @@ export interface ConsistentHashingState {
   readonly link: { readonly fromPos: number; readonly toPos: number } | null;
   /** Physical node joining or leaving during a change phase, if any. */
   readonly changedNode: string | null;
-  /** Keys relocated by the most recent membership change frame. */
+  /**
+   * Cumulative set of keys relocated so far by the membership change. It grows
+   * across the move frames and never resets, so the final frame holds every key
+   * that moved.
+   */
   readonly movedKeys: readonly string[];
 }

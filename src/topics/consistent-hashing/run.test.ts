@@ -210,6 +210,24 @@ describe("consistent-hashing run", () => {
     expect(got).toEqual(expected);
   });
 
+  it("states the K/N denominator using the pre-change node count on a leave", () => {
+    const leaveInput: ConsistentHashingInput = {
+      ...curatedInput,
+      change: { op: "leave", node: "B" },
+    };
+    const final = last(run(leaveInput));
+    // Three nodes were on the ring when the leave happened; the fraction must
+    // not quote the post-leave count of 2.
+    expect(final.narration).toMatch(/over 3 nodes/);
+    expect(final.narration).not.toMatch(/over 2 nodes/);
+  });
+
+  it("states the K/N denominator using the post-join node count on a join", () => {
+    const final = last(run(curatedInput));
+    // Joining D makes four nodes; the new node takes about K/4.
+    expect(final.narration).toMatch(/over 4 nodes/);
+  });
+
   it("runs without a membership change when none is given", () => {
     const noChange: ConsistentHashingInput = {
       ringSize: 1000,
@@ -294,6 +312,24 @@ describe("consistent-hashing run", () => {
     expect(() =>
       run({ ringSize: 100, vnodesPerNode: 1, nodes: [], keys: ["k"] })
     ).toThrow(/node/i);
+  });
+
+  it("throws when a node is duplicated", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: ["A", "A"], keys: ["k"] })
+    ).toThrow(/duplicate node/i);
+  });
+
+  it("throws when a key is duplicated", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: ["A"], keys: ["k", "k"] })
+    ).toThrow(/duplicate key/i);
+  });
+
+  it("throws when there are no keys", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: ["A"], keys: [] })
+    ).toThrow(/at least one key/i);
   });
 
   it("throws when a join names an existing node", () => {
