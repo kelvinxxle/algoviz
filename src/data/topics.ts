@@ -44,9 +44,9 @@ export const topics: Topic[] = [
     slug: "backtracking",
     title: "Backtracking",
     flavor: "canonical",
-    status: "coming-soon",
+    status: "available",
     blurb: "Systematic search and pruning over the recursion tree.",
-    complexity: "O(b^d)",
+    complexity: "O(N!)",
     icon: "account_tree",
   },
   {
