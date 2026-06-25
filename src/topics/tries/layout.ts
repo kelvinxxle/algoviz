@@ -1,5 +1,5 @@
 import { allPrefixNodes, nodeIdMap } from "./trie";
-import type { TrieInput } from "./types";
+import type { PrefixNode, TrieInput } from "./types";
 
 /** SVG coordinate space the renderer draws into. */
 export const VIEWBOX = { width: 800, height: 600 } as const;
@@ -36,7 +36,7 @@ export function layoutTrie(input: TrieInput): PositionedTrie {
   const words = input.operations
     .filter((op) => op.kind === "insert")
     .map((op) => op.word);
-  const nodes = allPrefixNodes(words);
+  const nodes: PrefixNode[] = allPrefixNodes(words);
   const ids = nodeIdMap(words);
 
   const childrenOf = new Map<string, string[]>();

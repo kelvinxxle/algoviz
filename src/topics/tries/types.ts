@@ -37,6 +37,22 @@ export interface TrieNodeSnapshot {
 }
 
 /**
+ * A structural trie node whose `id` IS the prefix string it represents (and
+ * whose `parent` is the parent prefix string), the empty string being the root.
+ * This is the prefix-keyed counterpart to `TrieNodeSnapshot`: it powers the
+ * render-only layout and the structural oracle, where keying by prefix is
+ * convenient. It never appears in an emitted Step; `run` translates these
+ * prefix ids to the compact opaque ids of `TrieNodeSnapshot` before emitting.
+ */
+export interface PrefixNode {
+  readonly id: string;
+  readonly char: string;
+  readonly parent: string | null;
+  readonly depth: number;
+  readonly isEnd: boolean;
+}
+
+/**
  * The result of a completed lookup.
  * - `hit`: exact search reached a node marked as a word end.
  * - `miss-word`: search matched every character but the node is not a word end,

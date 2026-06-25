@@ -90,7 +90,7 @@ export function TrieTree({
                 className="fill-base"
               />
               <text
-                data-char={node.id}
+                data-char={node.char}
                 x={mx}
                 y={my}
                 textAnchor="middle"

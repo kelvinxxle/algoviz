@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ROOT, childId, allPrefixNodes } from "./trie";
+import type { PrefixNode } from "./types";
 
 describe("trie core helpers", () => {
   it("uses the empty string as the root id", () => {
@@ -46,6 +47,15 @@ describe("trie core helpers", () => {
         parent: "a",
         depth: 2,
       });
+    });
+
+    it("returns prefix-keyed nodes whose id is the prefix string itself", () => {
+      const nodes: PrefixNode[] = allPrefixNodes(["ab"]);
+      for (const node of nodes) {
+        const prefix = node.parent === null ? ROOT : node.parent + node.char;
+        expect(node.id).toBe(prefix);
+      }
+      expect(nodes.map((n) => n.id)).toEqual(["", "a", "ab"]);
     });
 
     it("is deterministic and order-independent for the same word set", () => {

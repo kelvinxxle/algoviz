@@ -75,9 +75,30 @@ describe("TrieTree", () => {
     );
   });
 
-  it("renders the edge character label", () => {
+  it("renders the edge character label from the char, not the node id", () => {
+    // Real runs assign compact opaque ids (id !== char). The edge label must
+    // come from `char`, so data-char carries the character regardless of id.
+    const compactLayout: PositionedTrie = {
+      nodes: [
+        { id: "0", char: "", parent: null, depth: 0, x: 400, y: 60 },
+        { id: "1", char: "a", parent: "0", depth: 1, x: 400, y: 300 },
+      ],
+    };
+    const compactState: TrieState = {
+      nodes: [
+        { id: "0", char: "", parent: null, depth: 0, isEnd: false },
+        { id: "1", char: "a", parent: "0", depth: 1, isEnd: false },
+      ],
+      cursor: "1",
+      activePath: ["0", "1"],
+      op: { kind: "insert", word: "a" },
+      matched: 1,
+      falloff: null,
+      outcome: null,
+      phase: "insert",
+    };
     const { container } = render(
-      <TrieTree layout={layout} state={partial} highlights={highlights} />
+      <TrieTree layout={compactLayout} state={compactState} highlights={[]} />
     );
     expect(container.querySelector('[data-char="a"]')).toHaveTextContent("a");
   });

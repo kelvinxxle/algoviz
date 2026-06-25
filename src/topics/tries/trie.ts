@@ -1,4 +1,4 @@
-import type { TrieNodeSnapshot } from "./types";
+import type { PrefixNode } from "./types";
 
 /** The root node id: the empty prefix. */
 export const ROOT = "";
@@ -43,7 +43,7 @@ export function nodeIdMap(words: readonly string[]): Map<string, string> {
  * by id, so the result is deterministic and independent of word order. This
  * powers the render-only layout and is reused as the structural oracle.
  */
-export function allPrefixNodes(words: readonly string[]): TrieNodeSnapshot[] {
+export function allPrefixNodes(words: readonly string[]): PrefixNode[] {
   const ends = new Set<string>();
   const present = new Set<string>([ROOT]);
 
