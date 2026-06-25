@@ -64,7 +64,7 @@ describe("knapsack run", () => {
       { i: 1, w: 0 },
       { i: 0, w: 0 },
     ]);
-    expect(final.line).toBe(10);
+    expect(final.line).toBe(11);
   });
 
   it("is deterministic: two runs produce deep-equal steps", () => {
@@ -83,7 +83,7 @@ describe("knapsack run", () => {
     expect(frame?.state.takeValue).toBe(9);
     expect(frame?.state.took).toBe(true);
     expect(frame?.state.table[3][7]).toBe(9);
-    expect(frame?.line).toBe(9);
+    expect(frame?.line).toBe(10);
   });
 
   it("leaves the take option empty when the item does not fit", () => {
@@ -92,7 +92,7 @@ describe("knapsack run", () => {
     expect(frame?.state.takeValue).toBeNull();
     expect(frame?.state.took).toBe(false);
     expect(frame?.state.table[2][1]).toBe(1);
-    expect(frame?.line).toBe(5);
+    expect(frame?.line).toBe(6);
   });
 
   it("keeps the skip option when taking is not strictly better", () => {
@@ -101,7 +101,7 @@ describe("knapsack run", () => {
     expect(frame?.state.skipValue).toBe(5);
     expect(frame?.state.takeValue).toBe(5);
     expect(frame?.state.took).toBe(false);
-    expect(frame?.line).toBe(8);
+    expect(frame?.line).toBe(9);
   });
 
   it("points each cell frame at its two dependency cells", () => {

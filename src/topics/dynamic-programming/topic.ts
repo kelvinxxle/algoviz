@@ -11,8 +11,9 @@ import type { KnapsackInput, KnapsackState } from "./types";
 const pseudocode = [
   "function Knapsack(items, W):",
   "    for w in 0..W: dp[0][w] = 0",
+  "    for i in 0..n: dp[i][0] = 0",
   "    for i in 1..n:",
-  "        for w in 0..W:",
+  "        for w in 1..W:",
   "            dp[i][w] = dp[i-1][w]",
   "            if weight[i] <= w:",
   "                take = value[i] + dp[i-1][w - weight[i]]",

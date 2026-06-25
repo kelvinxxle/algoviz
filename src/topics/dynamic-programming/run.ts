@@ -7,10 +7,10 @@ import type { Cell, KnapsackInput, KnapsackState } from "./types";
  */
 const LINE = {
   base: 2,
-  skipOnly: 5, // item does not fit: dp[i][w] = dp[i-1][w]
-  compare: 8, // item fits but taking is not strictly better
-  take: 9, // item taken: dp[i][w] = take
-  done: 10, // return dp[n][W]
+  skipOnly: 6, // item does not fit: dp[i][w] = dp[i-1][w]
+  compare: 9, // item fits but taking is not strictly better
+  take: 10, // item taken: dp[i][w] = take
+  done: 11, // return dp[n][W]
 } as const;
 
 interface Counters {
@@ -46,8 +46,6 @@ export function run(
   const capped = () => steps.length >= cap;
 
   const snapshotTable = (): (number | null)[][] => table.map((row) => [...row]);
-
-  const cellTarget = (c: Cell) => `cell:${c.i},${c.w}`;
 
   const emit = (frame: {
     narration: string;
