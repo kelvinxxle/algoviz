@@ -7,6 +7,7 @@ import { unionFindTopic } from "@/topics/union-find/topic";
 import { backtrackingTopic } from "@/topics/backtracking/topic";
 import { triesTopic } from "@/topics/tries/topic";
 import { bloomTopic } from "@/topics/bloom-filters/topic";
+import { consistentHashingTopic } from "@/topics/consistent-hashing/topic";
 
 /**
  * Props every topic renderer receives. The shared shell passes the resolved
@@ -83,6 +84,12 @@ const BloomRenderer = dynamic(() =>
   )
 );
 
+const ConsistentHashingRenderer = dynamic(() =>
+  import("@/components/consistent-hashing/ConsistentHashingRenderer").then(
+    (m) => m.ConsistentHashingRenderer
+  )
+);
+
 /**
  * Slug to topic module. Adding a future topic is: author run() + bundle + a
  * renderer, then register one entry here. No shared engine, shell, or page edit.
@@ -100,6 +107,10 @@ const registry: Record<string, TopicModule> = {
   ),
   [triesTopic.slug]: defineTopic(triesTopic, TriesRenderer),
   [bloomTopic.slug]: defineTopic(bloomTopic, BloomRenderer),
+  [consistentHashingTopic.slug]: defineTopic(
+    consistentHashingTopic,
+    ConsistentHashingRenderer
+  ),
 };
 
 export function getTopicModule(slug: string): TopicModule | undefined {

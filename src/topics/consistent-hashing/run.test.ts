@@ -1,0 +1,509 @@
+import { describe, it, expect } from "vitest";
+import { run } from "./run";
+import { hashRing } from "./hash";
+import { curatedInput } from "./curated";
+import type { ConsistentHashingInput } from "./types";
+
+const last = <T>(arr: readonly T[]): T => arr[arr.length - 1];
+
+/** Deterministic LCG so the property test runs identically every time. */
+function makeRng(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+}
+
+/**
+ * Independent reference: assign every key by a linear clockwise scan over the
+ * sorted vnodes. The hash is the spec; this brute-force scan does not use the
+ * binary-search lookup, so agreement proves the lookup is correct.
+ */
+function referenceOwners(
+  nodes: readonly string[],
+  input: ConsistentHashingInput
+): Record<string, string> {
+  const vnodes: Array<{ label: string; node: string; pos: number }> = [];
+  for (const node of nodes) {
+    for (let r = 0; r < input.vnodesPerNode; r += 1) {
+      vnodes.push({
+        label: `${node}#${r}`,
+        node,
+        pos: hashRing(`${node}#${r}`, input.ringSize),
+      });
+    }
+  }
+  vnodes.sort((a, b) => a.pos - b.pos || (a.label < b.label ? -1 : 1));
+  const owners: Record<string, string> = {};
+  for (const key of input.keys) {
+    const kp = hashRing(key, input.ringSize);
+    let chosen = vnodes[0];
+    for (const v of vnodes) {
+      if (v.pos >= kp) {
+        chosen = v;
+        break;
+      }
+    }
+    owners[key] = chosen.node;
+  }
+  return owners;
+}
+
+function loadOf(
+  keys: readonly { owner: string | null }[]
+): Record<string, number> {
+  const load: Record<string, number> = {};
+  for (const k of keys) {
+    if (k.owner) load[k.owner] = (load[k.owner] ?? 0) + 1;
+  }
+  return load;
+}
+
+describe("consistent-hashing run", () => {
+  it("emits an init frame with no vnodes placed and no keys owned", () => {
+    const init = run(curatedInput)[0];
+    expect(init.state.vnodes).toHaveLength(0);
+    expect(init.state.keys.every((k) => k.owner === null)).toBe(true);
+    expect(init.narration.length).toBeGreaterThan(0);
+  });
+
+  it("places every virtual node before assigning keys", () => {
+    const steps = run(curatedInput);
+    const firstAssign = steps.find((s) => s.state.phase === "assign");
+    expect(firstAssign).toBeDefined();
+    // 3 nodes * 2 replicas = 6 vnodes on the ring before the first assignment.
+    expect(firstAssign?.state.vnodes).toHaveLength(6);
+  });
+
+  it("keeps the vnode list sorted by ring position", () => {
+    const steps = run(curatedInput);
+    for (const step of steps) {
+      const positions = step.state.vnodes.map((v) => v.pos);
+      const sorted = [...positions].sort((a, b) => a - b);
+      expect(positions).toEqual(sorted);
+    }
+  });
+
+  it("assigns owners that match an independent linear-scan reference", () => {
+    const distribute = run(curatedInput).find(
+      (s) => s.state.phase === "distribute"
+    );
+    expect(distribute).toBeDefined();
+    const expected = referenceOwners(curatedInput.nodes, curatedInput);
+    const got: Record<string, string> = {};
+    for (const k of distribute!.state.keys) got[k.key] = k.owner!;
+    expect(got).toEqual(expected);
+  });
+
+  it("shows a balanced curated load of A:3, B:3, C:4 before the join", () => {
+    const distribute = run(curatedInput).find(
+      (s) => s.state.phase === "distribute"
+    );
+    expect(loadOf(distribute!.state.keys)).toEqual({ A: 3, B: 3, C: 4 });
+  });
+
+  it("does not claim 'several' virtual nodes when each node places only one", () => {
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 1,
+      nodes: ["A", "B"],
+      keys: ["k1"],
+    };
+    const placeFrames = run(input).filter((s) =>
+      s.narration.startsWith("Place virtual node")
+    );
+    expect(placeFrames.length).toBeGreaterThan(0);
+    for (const frame of placeFrames) {
+      expect(frame.narration).not.toMatch(/several/i);
+    }
+  });
+
+  it("names the real replica count in placement narration when many", () => {
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 3,
+      nodes: ["A"],
+      keys: ["k1"],
+    };
+    const placeFrames = run(input).filter((s) =>
+      s.narration.startsWith("Place virtual node")
+    );
+    expect(placeFrames.some((s) => /3 virtual nodes/.test(s.narration))).toBe(
+      true
+    );
+  });
+
+  it("lists a node owning zero keys in the distribution narration", () => {
+    // Two nodes but a single key: exactly one node owns it and the other owns
+    // none. The distribution line must still show the idle node as "owns 0".
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 1,
+      nodes: ["A", "B"],
+      keys: ["k1"],
+    };
+    const distribute = run(input).find((s) => s.state.phase === "distribute")!;
+    const loads = loadOf(distribute.state.keys);
+    const zeroNode = ["A", "B"].find((n) => (loads[n] ?? 0) === 0);
+    expect(zeroNode).toBeDefined();
+    expect(distribute.narration).toContain(`${zeroNode} owns 0`);
+  });
+
+  it("keeps every node's palette index stable when a middle node leaves", () => {
+    const input: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 2,
+      nodes: ["A", "B", "C"],
+      keys: ["k1", "k2", "k3", "k4"],
+      change: { op: "leave", node: "B" },
+    };
+    const steps = run(input);
+    const distribute = steps.find((s) => s.state.phase === "distribute")!;
+    const done = last(steps);
+    // paletteOrder is append-only: the leaving node is never spliced out, so the
+    // order (and therefore every node's color index) is identical before and
+    // after the leave. A bystander never changes color mid-animation.
+    expect([...done.state.paletteOrder]).toEqual([
+      ...distribute.state.paletteOrder,
+    ]);
+    expect(distribute.state.paletteOrder).toContain("B");
+    for (const node of ["A", "C"]) {
+      expect(done.state.paletteOrder.indexOf(node)).toBe(
+        distribute.state.paletteOrder.indexOf(node)
+      );
+    }
+    // The leaving node is gone from the live membership in the final frame.
+    expect(done.state.nodes).not.toContain("B");
+  });
+
+  it("moves exactly the three keys in the joining node's arcs", () => {
+    const final = last(run(curatedInput));
+    expect([...final.state.movedKeys].sort()).toEqual(
+      ["blob:9", "order:88", "post:5"].sort()
+    );
+    expect(final.counters.moves).toBe(3);
+  });
+
+  it("gives every moved key to the joining node and no others move", () => {
+    const final = last(run(curatedInput));
+    const owners: Record<string, string> = {};
+    for (const k of final.state.keys) owners[k.key] = k.owner!;
+    for (const moved of final.state.movedKeys) {
+      expect(owners[moved]).toBe("D");
+    }
+    // Keys not in the moved set keep the owner they had before the join.
+    const before = referenceOwners(curatedInput.nodes, curatedInput);
+    for (const k of final.state.keys) {
+      if (!final.state.movedKeys.includes(k.key)) {
+        expect(k.owner).toBe(before[k.key]);
+      }
+    }
+  });
+
+  it("final owners match the reference computed on the post-join ring", () => {
+    const final = last(run(curatedInput));
+    const expected = referenceOwners(
+      [...curatedInput.nodes, "D"],
+      curatedInput
+    );
+    const got: Record<string, string> = {};
+    for (const k of final.state.keys) got[k.key] = k.owner!;
+    expect(got).toEqual(expected);
+  });
+
+  it("does not report a key as moved when its owner is unchanged on a colliding ring", () => {
+    // ringSize 1 forces every label to position 0, so the joining node's vnode
+    // collides with the existing node's and steals nothing. No key moves.
+    const input: ConsistentHashingInput = {
+      ringSize: 1,
+      vnodesPerNode: 1,
+      nodes: ["A"],
+      keys: ["k1"],
+      change: { op: "join", node: "D" },
+    };
+    const steps = run(input);
+    const final = last(steps);
+    expect(final.counters.moves).toBe(0);
+    expect(final.state.movedKeys).toHaveLength(0);
+    expect(final.state.keys.find((k) => k.key === "k1")?.owner).toBe("A");
+    // No frame may claim a key moved from one node back to that same node.
+    for (const step of steps) {
+      expect(step.narration).not.toMatch(/from (\w+) to \1\b/);
+    }
+  });
+
+  it("oracle: moves counts exactly the keys whose owner changed on join (random rings, collisions included)", () => {
+    const rng = makeRng(424242);
+    for (let trial = 0; trial < 200; trial += 1) {
+      // Small ring sizes (including 1) deliberately force position collisions.
+      const ringSize = 1 + Math.floor(rng() * 64);
+      const vnodesPerNode = 1 + Math.floor(rng() * 3);
+      const nodeCount = 1 + Math.floor(rng() * 4);
+      const nodes = Array.from({ length: nodeCount }, (_, i) => `N${i}`);
+      const keyCount = 1 + Math.floor(rng() * 8);
+      const keys = Array.from({ length: keyCount }, (_, i) => `k${i}`);
+      const joinNode = "zzz";
+      const input: ConsistentHashingInput = {
+        ringSize,
+        vnodesPerNode,
+        nodes,
+        keys,
+        change: { op: "join", node: joinNode },
+      };
+      const before = referenceOwners(nodes, input);
+      const after = referenceOwners([...nodes, joinNode], input);
+      const actualChanges = keys.filter((k) => before[k] !== after[k]);
+      const final = last(run(input));
+      expect(final.counters.moves).toBe(actualChanges.length);
+      expect([...final.state.movedKeys].sort()).toEqual(
+        [...actualChanges].sort()
+      );
+      for (const moved of final.state.movedKeys) {
+        expect(before[moved]).not.toBe(after[moved]);
+      }
+      const got: Record<string, string> = {};
+      for (const k of final.state.keys) got[k.key] = k.owner!;
+      expect(got).toEqual(after);
+    }
+  });
+
+  it("assigns a colliding joining vnode that sorts first as the new owner", () => {
+    // ringSize 1 forces pos 0. "A#0" < "B#0", so the joining vnode A#0 sorts
+    // before the existing B#0 at the shared position and becomes k's clockwise
+    // successor. The final frame must reflect that, matching lookupOwner.
+    const input: ConsistentHashingInput = {
+      ringSize: 1,
+      vnodesPerNode: 1,
+      nodes: ["B"],
+      keys: ["k"],
+      change: { op: "join", node: "A" },
+    };
+    const final = last(run(input));
+    expect(final.state.keys.find((k) => k.key === "k")?.owner).toBe("A");
+    expect(final.state.movedKeys).toContain("k");
+    expect(final.counters.moves).toBe(1);
+  });
+
+  it("does not move a colliding joining vnode that sorts after the existing owner", () => {
+    // "C#0" sorts after "B#0" at the shared position, so B keeps k. No move.
+    const input: ConsistentHashingInput = {
+      ringSize: 1,
+      vnodesPerNode: 1,
+      nodes: ["B"],
+      keys: ["k"],
+      change: { op: "join", node: "C" },
+    };
+    const final = last(run(input));
+    expect(final.state.keys.find((k) => k.key === "k")?.owner).toBe("B");
+    expect(final.counters.moves).toBe(0);
+    expect(final.state.movedKeys).toHaveLength(0);
+  });
+
+  it("oracle: join node that sorts first still matches the reference (collisions included)", () => {
+    const rng = makeRng(909090);
+    for (let trial = 0; trial < 200; trial += 1) {
+      const ringSize = 1 + Math.floor(rng() * 64);
+      const vnodesPerNode = 1 + Math.floor(rng() * 3);
+      const nodeCount = 1 + Math.floor(rng() * 4);
+      const nodes = Array.from({ length: nodeCount }, (_, i) => `N${i}`);
+      const keyCount = 1 + Math.floor(rng() * 8);
+      const keys = Array.from({ length: keyCount }, (_, i) => `k${i}`);
+      // "A" sorts before every "N..." label, so at a position collision the
+      // joining vnode sorts first and must steal those keys.
+      const joinNode = "A";
+      const input: ConsistentHashingInput = {
+        ringSize,
+        vnodesPerNode,
+        nodes,
+        keys,
+        change: { op: "join", node: joinNode },
+      };
+      const before = referenceOwners(nodes, input);
+      const after = referenceOwners([...nodes, joinNode], input);
+      const actualChanges = keys.filter((k) => before[k] !== after[k]);
+      const final = last(run(input));
+      expect(final.counters.moves).toBe(actualChanges.length);
+      expect([...final.state.movedKeys].sort()).toEqual(
+        [...actualChanges].sort()
+      );
+      const got: Record<string, string> = {};
+      for (const k of final.state.keys) got[k.key] = k.owner!;
+      expect(got).toEqual(after);
+    }
+  });
+
+  it("moves only keys previously owned by the leaving node", () => {
+    const leaveInput: ConsistentHashingInput = {
+      ...curatedInput,
+      change: { op: "leave", node: "B" },
+    };
+    const before = referenceOwners(curatedInput.nodes, leaveInput);
+    const final = last(run(leaveInput));
+    for (const moved of final.state.movedKeys) {
+      expect(before[moved]).toBe("B");
+    }
+    const expected = referenceOwners(["A", "C"], leaveInput);
+    const got: Record<string, string> = {};
+    for (const k of final.state.keys) got[k.key] = k.owner!;
+    expect(got).toEqual(expected);
+  });
+
+  it("states the K/N denominator using the pre-change node count on a leave", () => {
+    const leaveInput: ConsistentHashingInput = {
+      ...curatedInput,
+      change: { op: "leave", node: "B" },
+    };
+    const final = last(run(leaveInput));
+    // Three nodes were on the ring when the leave happened; the fraction must
+    // not quote the post-leave count of 2.
+    expect(final.narration).toMatch(/over 3 nodes/);
+    expect(final.narration).not.toMatch(/over 2 nodes/);
+  });
+
+  it("states the K/N denominator using the post-join node count on a join", () => {
+    const final = last(run(curatedInput));
+    // Joining D makes four nodes; the new node takes about K/4.
+    expect(final.narration).toMatch(/over 4 nodes/);
+  });
+
+  it("runs without a membership change when none is given", () => {
+    const noChange: ConsistentHashingInput = {
+      ringSize: 1000,
+      vnodesPerNode: 2,
+      nodes: ["A", "B"],
+      keys: ["k1", "k2", "k3"],
+    };
+    const final = last(run(noChange));
+    expect(final.counters.moves).toBe(0);
+    expect(final.state.keys.every((k) => k.owner !== null)).toBe(true);
+  });
+
+  it("is deterministic: two runs produce deep-equal steps", () => {
+    expect(run(curatedInput)).toEqual(run(curatedInput));
+  });
+
+  it("keeps counters monotonic across frames", () => {
+    const steps = run(curatedInput);
+    const keys = ["placements", "lookups", "probes", "moves"] as const;
+    for (let i = 1; i < steps.length; i += 1) {
+      for (const k of keys) {
+        expect(steps[i].counters[k]).toBeGreaterThanOrEqual(
+          steps[i - 1].counters[k]
+        );
+      }
+    }
+  });
+
+  it("reports honest totals: 8 placements and lookups only for assigned plus moved keys", () => {
+    const final = last(run(curatedInput));
+    // 3 nodes + 1 joined node, each with 2 vnodes.
+    expect(final.counters.placements).toBe(8);
+    // 10 initial assignments plus 3 reassignments for the moved keys.
+    expect(final.counters.lookups).toBe(13);
+    // Binary search does real logarithmic work, so probes is positive.
+    expect(final.counters.probes).toBeGreaterThan(0);
+  });
+
+  it("keeps lookups logarithmic: total probes stay within lookups * ceil(log2(ring members))", () => {
+    const nodes = Array.from({ length: 24 }, (_, i) => `n${i}`);
+    const keys = Array.from({ length: 50 }, (_, i) => `k${i}`);
+    const input: ConsistentHashingInput = {
+      ringSize: 4096,
+      vnodesPerNode: 4,
+      nodes,
+      keys,
+    };
+    const final = last(run(input));
+    const ringMembers = nodes.length * input.vnodesPerNode;
+    const perLookupBound = Math.ceil(Math.log2(ringMembers)) + 2;
+    // A linear scan would cost ~ringMembers probes per lookup; the binary search
+    // keeps it logarithmic, so the advertised O(log(N*V)) lookup is honest.
+    expect(final.counters.probes).toBeLessThanOrEqual(
+      final.counters.lookups * perLookupBound
+    );
+    expect(final.counters.probes).toBeLessThan(
+      final.counters.lookups * ringMembers
+    );
+  });
+
+  it("only emits pseudocode lines that exist in a 10-line listing", () => {
+    for (const step of run(curatedInput)) {
+      if (step.line !== undefined) {
+        expect(step.line).toBeGreaterThanOrEqual(1);
+        expect(step.line).toBeLessThanOrEqual(10);
+      }
+    }
+  });
+
+  it("caps emitted steps at maxSteps", () => {
+    const steps = run(curatedInput, { maxSteps: 4 });
+    expect(steps).toHaveLength(4);
+  });
+
+  it("throws when the ring size is not positive", () => {
+    expect(() =>
+      run({ ringSize: 0, vnodesPerNode: 1, nodes: ["A"], keys: ["k"] })
+    ).toThrow(/ring/i);
+  });
+
+  it("throws when there are no nodes to place", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: [], keys: ["k"] })
+    ).toThrow(/node/i);
+  });
+
+  it("throws when a node is duplicated", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: ["A", "A"], keys: ["k"] })
+    ).toThrow(/duplicate node/i);
+  });
+
+  it("throws when a key is duplicated", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: ["A"], keys: ["k", "k"] })
+    ).toThrow(/duplicate key/i);
+  });
+
+  it("throws when there are no keys", () => {
+    expect(() =>
+      run({ ringSize: 100, vnodesPerNode: 1, nodes: ["A"], keys: [] })
+    ).toThrow(/at least one key/i);
+  });
+
+  it("throws when a join names an existing node", () => {
+    expect(() =>
+      run({
+        ringSize: 100,
+        vnodesPerNode: 1,
+        nodes: ["A"],
+        keys: ["k"],
+        change: { op: "join", node: "A" },
+      })
+    ).toThrow(/already a node/i);
+  });
+
+  it("throws when a leave names an absent node", () => {
+    expect(() =>
+      run({
+        ringSize: 100,
+        vnodesPerNode: 1,
+        nodes: ["A"],
+        keys: ["k"],
+        change: { op: "leave", node: "Z" },
+      })
+    ).toThrow(/not a node/i);
+  });
+
+  it("throws when a leave would empty the ring of its last node", () => {
+    expect(() =>
+      run({
+        ringSize: 100,
+        vnodesPerNode: 1,
+        nodes: ["A"],
+        keys: ["k"],
+        change: { op: "leave", node: "A" },
+      })
+    ).toThrow(/at least one node must remain/i);
+  });
+});
