@@ -49,6 +49,20 @@ describe("PseudocodePanel", () => {
     const inactive = screen.getByText("a").closest("[data-line]");
     expect(inactive).not.toHaveAttribute("data-active");
   });
+
+  it("wraps long lines instead of overflowing horizontally", () => {
+    render(
+      <PseudocodePanel
+        lines={[
+          "this is a very long pseudocode line that would overflow the panel",
+        ]}
+      />
+    );
+    const code = screen.getByText(/very long pseudocode line/);
+    expect(code.className).toContain("whitespace-pre-wrap");
+    expect(code.className).toContain("break-words");
+    expect(code.className).toContain("min-w-0");
+  });
 });
 
 describe("CountersPanel", () => {
