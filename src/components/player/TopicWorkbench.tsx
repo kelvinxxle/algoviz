@@ -78,6 +78,7 @@ export function TopicWorkbench({
     (next: unknown) => {
       const frames = topic.run(next, { maxSteps: SANDBOX_MAX_STEPS });
       if (frames.length >= SANDBOX_MAX_STEPS) {
+        store.getState().pause();
         setCapNotice(
           `Input too large to visualize. Capped at ${SANDBOX_MAX_STEPS} steps. Try a smaller graph.`
         );
@@ -86,6 +87,7 @@ export function TopicWorkbench({
       setCapNotice(null);
       setInput(next);
       store.getState().load(frames);
+      store.getState().play();
     },
     [topic, store]
   );
