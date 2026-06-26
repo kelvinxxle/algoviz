@@ -35,4 +35,13 @@ describe("Sidebar primary navigation", () => {
     const dashboard = screen.getByRole("link", { name: /dashboard/i });
     expect(dashboard).not.toHaveAttribute("aria-current");
   });
+
+  it("opens external reference links safely in a new tab", () => {
+    pathname.mockReturnValue("/");
+    render(<Sidebar />);
+
+    const source = screen.getByRole("link", { name: /source/i });
+    expect(source).toHaveAttribute("target", "_blank");
+    expect(source).toHaveAttribute("rel", "noopener noreferrer");
+  });
 });

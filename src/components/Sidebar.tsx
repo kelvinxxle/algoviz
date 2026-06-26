@@ -48,10 +48,10 @@ export function Sidebar() {
             </div>
             {section.links.map((link) => (
               <a
-                key={link.text}
+                key={link.href}
                 href={link.href}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex w-full items-center gap-md px-md py-sm text-left font-body-md text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
               >
                 <span

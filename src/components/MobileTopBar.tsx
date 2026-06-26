@@ -20,10 +20,10 @@ export function MobileTopBar() {
         {NAV_SECTIONS.flatMap((section) =>
           section.links.map((link) => (
             <a
-              key={link.text}
+              key={link.href}
               href={link.href}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               aria-label={link.text}
               className="flex items-center text-on-surface-variant hover:text-on-surface"
             >
