@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = !!process.env.CI;
 
-// Ask the OS for a guaranteed-free ephemeral port. Runs in a short-lived child
+// Ask the OS for a currently-free ephemeral port. Runs in a short-lived child
 // node process so the lookup stays synchronous at config-load time without
 // adding a dependency.
 function findFreePort(): number {
@@ -19,6 +19,18 @@ function findFreePort(): number {
   return Number.parseInt(out.trim(), 10);
 }
 
+// Parse a string into a valid TCP port (an integer in [1, 65535]) or return
+// null when it is missing, non-numeric, or out of range. This keeps the local
+// dev server from being pointed at an impossible address like
+// http://localhost:0 when PORT is set to a bad value.
+function parsePort(value: string | undefined): number | null {
+  if (value === undefined) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535
+    ? parsed
+    : null;
+}
+
 // Single source of truth for the dev server port. CI keeps the fixed 3000 it
 // has always used. Local runs honor an explicit PORT or otherwise pick a free
 // port, so a stale or foreign server on 3000 is never reused as if it were ours.
@@ -29,10 +41,22 @@ function findFreePort(): number {
 // its own (unused) port and hitting a connection-refused.
 function resolvePort(): number {
   const cached = process.env.PLAYWRIGHT_E2E_PORT;
-  if (cached) return Number.parseInt(cached, 10);
+  if (cached) {
+    const cachedPort = parsePort(cached);
+    if (cachedPort === null) {
+      throw new Error(
+        `PLAYWRIGHT_E2E_PORT is set to an invalid port: "${cached}". ` +
+          "Expected an integer in [1, 65535]."
+      );
+    }
+    return cachedPort;
+  }
 
-  const explicit = isCI ? 3000 : Number.parseInt(process.env.PORT ?? "", 10);
-  const chosen = Number.isNaN(explicit) ? findFreePort() : explicit;
+  // CI always uses 3000 and ignores PORT. Locally an explicit PORT is honored
+  // only when it is a valid in-range port; anything else (0, negative, out of
+  // range, or non-numeric) falls back to an auto-selected free port.
+  const explicit = isCI ? 3000 : parsePort(process.env.PORT);
+  const chosen = explicit ?? findFreePort();
   process.env.PLAYWRIGHT_E2E_PORT = String(chosen);
   return chosen;
 }
