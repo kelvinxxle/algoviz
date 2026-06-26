@@ -51,8 +51,8 @@ function parseStep(value: unknown): ExplainStepContext | null {
   if (typeof value.caption === "string") step.caption = value.caption;
   if (
     typeof value.activeLine === "number" &&
-    Number.isFinite(value.activeLine) &&
-    value.activeLine >= 0
+    Number.isInteger(value.activeLine) &&
+    value.activeLine >= 1
   ) {
     step.activeLine = value.activeLine;
   }

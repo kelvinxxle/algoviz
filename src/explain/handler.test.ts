@@ -181,22 +181,24 @@ describe("handleExplain", () => {
     expect(result.status).toBe(200);
   });
 
-  it("drops a non-finite or negative activeLine instead of forwarding it", async () => {
-    const provider = fakeProvider("ok");
-    const result = await handleExplain(
-      {
-        ...VALID_BODY,
-        step: {
-          index: 0,
-          total: 3,
-          narration: "Start.",
-          activeLine: -2,
+  it("drops a non-positive, non-integer, or non-finite activeLine (line is 1-based)", async () => {
+    async function lineFor(activeLine: number): Promise<string> {
+      const provider = fakeProvider("ok");
+      const result = await handleExplain(
+        {
+          ...VALID_BODY,
+          step: { index: 0, total: 3, narration: "Start.", activeLine },
         },
-      },
-      deps({ getProvider: () => provider })
-    );
-    expect(result.status).toBe(200);
-    const prompt = (provider.ask as ReturnType<typeof vi.fn>).mock.calls[0][0];
-    expect(prompt.system).toContain("Active pseudocode line: none");
+        deps({ getProvider: () => provider })
+      );
+      expect(result.status).toBe(200);
+      return (provider.ask as ReturnType<typeof vi.fn>).mock.calls[0][0].system;
+    }
+
+    expect(await lineFor(-2)).toContain("Active pseudocode line: none");
+    expect(await lineFor(0)).toContain("Active pseudocode line: none");
+    expect(await lineFor(Number.NaN)).toContain("Active pseudocode line: none");
+    expect(await lineFor(2.5)).toContain("Active pseudocode line: none");
+    expect(await lineFor(1)).toContain("Active pseudocode line: line 1");
   });
 });
