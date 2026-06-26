@@ -119,4 +119,14 @@ describe("useKeyboardShortcuts", () => {
       "STEP 1 / 12"
     );
   });
+
+  it("does not toggle playback when Space activates the shortcuts disclosure", async () => {
+    const user = userEvent.setup();
+    renderWorkbench();
+    const summary = screen.getByText("Keyboard shortcuts");
+    summary.focus();
+    expect(summary).toHaveFocus();
+    await user.keyboard(" ");
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
 });

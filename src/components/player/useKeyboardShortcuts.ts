@@ -21,15 +21,17 @@ function isFormField(el: Element | null): boolean {
 /** True for elements that natively activate on Space (avoid double toggle). */
 function isClickable(el: Element | null): boolean {
   if (!(el instanceof HTMLElement)) return false;
-  return el.tagName === "BUTTON" || el.tagName === "A";
+  return (
+    el.tagName === "BUTTON" || el.tagName === "A" || el.tagName === "SUMMARY"
+  );
 }
 
 /**
  * Global player keyboard shortcuts for the workbench. Bindings dispatch the same
  * store actions the on-screen controls do, so keyboard and pointer stay in sync.
  * Shortcuts are suppressed while focus is in a form field (the sandbox textarea
- * and the scrubber included), and Space is suppressed on a focused button or
- * link so it does not double-fire with the element's native activation.
+ * and the scrubber included), and Space is suppressed on a focused button, link,
+ * or summary so it does not double-fire with the element's native activation.
  */
 export function useKeyboardShortcuts(store: PlayerStore): void {
   useEffect(() => {
