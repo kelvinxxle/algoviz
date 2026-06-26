@@ -56,4 +56,30 @@ test.describe("Scoped AI explainer", () => {
     );
     await expect(page.getByTestId("explainer-answer")).toHaveCount(0);
   });
+
+  test("returns 400 invalid_request for a malformed JSON body", async ({
+    request,
+  }) => {
+    const res = await request.post("/api/explain", {
+      headers: { "content-type": "application/json" },
+      data: "this is not json",
+    });
+    expect(res.status()).toBe(400);
+    expect(await res.json()).toEqual({ error: "invalid_request" });
+  });
+
+  test("returns 405 method_not_allowed for every non-POST verb", async ({
+    request,
+  }) => {
+    for (const call of [
+      request.get("/api/explain"),
+      request.put("/api/explain"),
+      request.patch("/api/explain"),
+      request.delete("/api/explain"),
+    ]) {
+      const res = await call;
+      expect(res.status()).toBe(405);
+      expect(await res.json()).toEqual({ error: "method_not_allowed" });
+    }
+  });
 });

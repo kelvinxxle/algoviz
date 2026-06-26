@@ -29,6 +29,12 @@ export async function POST(request: Request): Promise<Response> {
   return Response.json(result.body, { status: result.status });
 }
 
-export function GET(): Response {
+/** Shared 405 responder so every non-POST verb returns the same honest body. */
+function methodNotAllowed(): Response {
   return Response.json({ error: "method_not_allowed" }, { status: 405 });
 }
+
+export const GET = methodNotAllowed;
+export const PUT = methodNotAllowed;
+export const PATCH = methodNotAllowed;
+export const DELETE = methodNotAllowed;
