@@ -215,6 +215,62 @@ describe("TopicWorkbench (generic shell)", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("pauses a stale autoplaying run when a later run exceeds the cap", async () => {
+    const user = userEvent.setup();
+    // start 20 yields a small, playable run; start 30 exceeds the cap.
+    const mixedRun = (input: FakeInput): Step<FakeState>[] => {
+      if (input.start === 30) {
+        return Array.from({ length: SANDBOX_MAX_STEPS + 1 }, (_, i) => ({
+          state: { value: i },
+          narration: `frame ${i}`,
+          highlights: [],
+          counters: { steps: i },
+          caption: "x",
+        }));
+      }
+      return [
+        {
+          state: { value: input.start },
+          narration: `Begin at ${input.start}`,
+          highlights: [],
+          counters: { steps: 0 },
+          line: 1,
+          caption: "Start",
+        },
+        {
+          state: { value: input.start + 1 },
+          narration: `Advance to ${input.start + 1}`,
+          highlights: [],
+          counters: { steps: 1 },
+          line: 2,
+          caption: "Next",
+        },
+      ];
+    };
+    const mod = defineTopic(makeTopic(mixedRun), FakeRenderer);
+    render(<TopicWorkbench topic={mod.topic} Renderer={mod.Renderer} />);
+
+    const box = screen.getByLabelText("Custom input");
+    await user.clear(box);
+    await user.type(box, "20");
+    await user.click(screen.getByRole("button", { name: "Run visualization" }));
+
+    // The valid run is autoplaying.
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
+
+    await user.clear(box);
+    await user.type(box, "30");
+    await user.click(screen.getByRole("button", { name: "Run visualization" }));
+
+    // The rejected oversized run must stop the stale animation, not leave the
+    // previous run playing behind the cap notice.
+    expect(screen.getByTestId("sandbox-cap-notice")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pause" })
+    ).not.toBeInTheDocument();
+  });
+
   it("caps an oversized sandbox run and shows a notice instead of hanging", async () => {
     const user = userEvent.setup();
     const hugeRun = (input: FakeInput): Step<FakeState>[] => {
