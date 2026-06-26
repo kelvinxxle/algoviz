@@ -46,19 +46,22 @@ export function TopicWorkbench({
   const rootRef = useRef<HTMLDivElement>(null);
   const [store] = useState(() => createPlayerStore());
   const displayed = useElementDisplayed(rootRef);
-  const loadedRef = useRef(false);
-
-  useEffect(() => {
-    if (!displayed || loadedRef.current) return;
-    loadedRef.current = true;
-    store
-      .getState()
-      .load(topic.run(topic.curatedInput, { maxSteps: SANDBOX_MAX_STEPS }));
-  }, [displayed, store, topic]);
+  const loadedSlugRef = useRef<string | null>(null);
 
   const [input, setInput] = useState<unknown>(topic.curatedInput);
   const [tab, setTab] = useState<Tab>("logic");
   const [capNotice, setCapNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!displayed) return;
+    if (loadedSlugRef.current === topic.slug) return;
+    loadedSlugRef.current = topic.slug;
+    setInput(topic.curatedInput);
+    setCapNotice(null);
+    store
+      .getState()
+      .load(topic.run(topic.curatedInput, { maxSteps: SANDBOX_MAX_STEPS }));
+  }, [displayed, store, topic]);
 
   usePlayer(store);
   useKeyboardShortcuts(store, displayed);

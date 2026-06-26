@@ -84,6 +84,27 @@ describe("TopicWorkbench (generic shell)", () => {
     expect(screen.getByText("function fake()")).toBeInTheDocument();
   });
 
+  it("reloads when the topic changes on a persisted workbench instance", () => {
+    const modA = defineTopic(makeTopic(), FakeRenderer);
+    const { rerender } = render(
+      <TopicWorkbench topic={modA.topic} Renderer={modA.Renderer} />
+    );
+    expect(screen.getByTestId("canvas-value")).toHaveTextContent("10");
+    expect(screen.getByTestId("canvas-input")).toHaveTextContent("10");
+
+    const topicB = {
+      ...makeTopic(),
+      slug: "fake-two",
+      curatedInput: { start: 99 },
+    };
+    const modB = defineTopic(topicB, FakeRenderer);
+    rerender(<TopicWorkbench topic={modB.topic} Renderer={modB.Renderer} />);
+
+    expect(screen.getByTestId("canvas-value")).toHaveTextContent("99");
+    expect(screen.getByTestId("canvas-input")).toHaveTextContent("99");
+    expect(screen.getByTestId("step-position")).toHaveTextContent("STEP 1 / 2");
+  });
+
   it("advances frames via the transport without any topic-specific code", async () => {
     const user = userEvent.setup();
     const mod = defineTopic(makeTopic(), FakeRenderer);
