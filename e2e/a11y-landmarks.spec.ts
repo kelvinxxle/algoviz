@@ -15,6 +15,20 @@ test.describe("landmarks and skip-link", () => {
     await page.keyboard.press("Enter");
     const focusedId = await page.evaluate(() => document.activeElement?.id);
     expect(focusedId).toBe("visualization");
+    const outline = await page.evaluate(() => {
+      const el = document.activeElement as HTMLElement | null;
+      if (!el) return { width: 0, style: "none", color: "rgba(0, 0, 0, 0)" };
+      const s = getComputedStyle(el);
+      return {
+        width: parseFloat(s.outlineWidth) || 0,
+        style: s.outlineStyle,
+        color: s.outlineColor,
+      };
+    });
+    expect(outline.style).not.toBe("none");
+    expect(outline.width).toBeGreaterThan(0);
+    expect(outline.color).not.toBe("rgba(0, 0, 0, 0)");
+    expect(outline.color).not.toBe("transparent");
   });
 
   test("exposes labeled landmarks and a named figure", async ({ page }) => {

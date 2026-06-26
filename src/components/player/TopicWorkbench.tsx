@@ -83,7 +83,7 @@ export function TopicWorkbench({
         id="visualization"
         tabIndex={-1}
         data-testid={`${topic.slug}-workbench`}
-        className="flex min-h-0 flex-1 flex-col overflow-hidden focus:outline-none lg:flex-row"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row"
       >
         <section className="relative flex min-w-0 flex-1 flex-col bg-base max-lg:max-h-[60vh] max-lg:shrink-0">
           <div className="relative flex flex-1 items-center justify-center overflow-hidden p-xl">
