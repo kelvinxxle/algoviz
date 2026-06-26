@@ -7,6 +7,8 @@
  * Layout is never part of a Step and never affects `run` output.
  */
 
+import { minOf, maxOf } from "@/lib/minmax";
+
 export const VIEWBOX = { width: 800, height: 600 } as const;
 
 const PADDING = 70;
@@ -82,9 +84,9 @@ export function layoutForest(
 
   const cols = [...col.values()];
   const depths = [...depth.values()];
-  const minCol = Math.min(...cols);
-  const maxCol = Math.max(...cols);
-  const maxDepth = Math.max(...depths);
+  const minCol = minOf(cols);
+  const maxCol = maxOf(cols);
+  const maxDepth = maxOf(depths);
 
   const innerW = VIEWBOX.width - 2 * PADDING;
   const colSpan = maxCol - minCol;

@@ -6,6 +6,7 @@ import {
   type SimulationLinkDatum,
   type SimulationNodeDatum,
 } from "d3-force";
+import { minOf, maxOf } from "@/lib/minmax";
 import type { DijkstraInput, GraphEdge } from "./types";
 
 /** SVG coordinate space the renderer draws into. */
@@ -101,10 +102,10 @@ export function layoutGraph(input: DijkstraInput): PositionedGraph {
 function rescale(nodes: readonly SimNode[]): PositionedNode[] {
   const xs = nodes.map((n) => n.x ?? 0);
   const ys = nodes.map((n) => n.y ?? 0);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
+  const minX = minOf(xs);
+  const maxX = maxOf(xs);
+  const minY = minOf(ys);
+  const maxY = maxOf(ys);
 
   const spanX = maxX - minX;
   const spanY = maxY - minY;

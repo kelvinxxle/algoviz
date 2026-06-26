@@ -102,8 +102,14 @@ test.describe("Topic detail routing", () => {
     await expect(page.getByTestId("dijkstra-workbench")).toBeVisible();
   });
 
-  test("an unknown topic slug returns 404", async ({ page }) => {
+  test("an unknown topic slug returns a branded 404", async ({ page }) => {
     const response = await page.goto("/topics/not-a-real-topic");
     expect(response?.status()).toBe(404);
+    await expect(
+      page.getByRole("heading", { name: /that topic does not exist yet/i })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /topic library/i })
+    ).toBeVisible();
   });
 });

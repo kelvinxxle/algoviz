@@ -1,4 +1,5 @@
 import { allPrefixNodes, nodeIdMap } from "./trie";
+import { minOf, maxOf } from "@/lib/minmax";
 import type { PrefixNode, TrieInput } from "./types";
 
 /** SVG coordinate space the renderer draws into. */
@@ -71,9 +72,9 @@ export function layoutTrie(input: TrieInput): PositionedTrie {
   assign("");
 
   const cols = [...rawX.values()];
-  const minX = Math.min(...cols);
-  const maxX = Math.max(...cols);
-  const maxDepth = Math.max(...nodes.map((n) => n.depth));
+  const minX = minOf(cols);
+  const maxX = maxOf(cols);
+  const maxDepth = maxOf(nodes.map((n) => n.depth));
 
   const innerW = VIEWBOX.width - 2 * PADDING;
   const innerH = VIEWBOX.height - 2 * PADDING;

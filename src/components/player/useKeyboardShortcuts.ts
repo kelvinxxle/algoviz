@@ -32,9 +32,13 @@ function isClickable(el: Element | null): boolean {
  * Shortcuts are suppressed while focus is in a form field (the sandbox textarea
  * and the scrubber included), and Space is suppressed on a focused button, link,
  * or summary so it does not double-fire with the element's native activation.
+ * When `enabled` is false (for example while the workbench is hidden below md) no
+ * listener is attached, so Space and the arrow keys keep their native scrolling
+ * behavior.
  */
-export function useKeyboardShortcuts(store: PlayerStore): void {
+export function useKeyboardShortcuts(store: PlayerStore, enabled = true): void {
   useEffect(() => {
+    if (!enabled) return;
     function onKeyDown(event: KeyboardEvent): void {
       if (event.defaultPrevented) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -82,5 +86,5 @@ export function useKeyboardShortcuts(store: PlayerStore): void {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [store]);
+  }, [store, enabled]);
 }

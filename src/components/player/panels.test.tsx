@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NarrationPanel } from "./NarrationPanel";
@@ -142,6 +143,37 @@ describe("SandboxPanel", () => {
     raw.includes("bad")
       ? { ok: false, error: "bad input on line 1" }
       : { ok: true, value: raw.split(" ") };
+
+  it("stays mounted and forwards the latest input when its parent re-renders on each transport tick", async () => {
+    const user = userEvent.setup();
+    const onRun = vi.fn();
+    const stableParse = (raw: string): ParseResult<string[]> =>
+      raw.includes("bad")
+        ? { ok: false, error: "bad input on line 1" }
+        : { ok: true, value: raw.split(" ") };
+
+    function Parent() {
+      const [tick, setTick] = useState(0);
+      return (
+        <>
+          <button onClick={() => setTick((t) => t + 1)}>tick {tick}</button>
+          <SandboxPanel defaultValue="A B" parse={stableParse} onRun={onRun} />
+        </>
+      );
+    }
+
+    render(<Parent />);
+    const box = screen.getByLabelText("Custom input");
+    await user.clear(box);
+    await user.type(box, "C D");
+
+    await user.click(screen.getByText(/tick/));
+    await user.click(screen.getByText(/tick/));
+
+    expect(box).toHaveValue("C D");
+    await user.click(screen.getByRole("button", { name: /run/i }));
+    expect(onRun).toHaveBeenCalledWith(["C", "D"]);
+  });
 
   it("runs parsed input on success", async () => {
     const user = userEvent.setup();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { memo, useState, type ReactNode } from "react";
 import type { ParseResult } from "@/engine/contract";
 
 /**
@@ -9,7 +9,7 @@ import type { ParseResult } from "@/engine/contract";
  * on failure shows the parser's error message. The walkthrough and the sandbox
  * share one engine, so "show, then let me drive" needs no separate code path.
  */
-export function SandboxPanel<TInput>({
+function SandboxPanelInner<TInput>({
   defaultValue,
   parse,
   onRun,
@@ -73,3 +73,9 @@ export function SandboxPanel<TInput>({
     </section>
   );
 }
+
+/**
+ * Memoized: the sandbox is static while the player ticks. The cast preserves the
+ * generic call signature that React.memo would otherwise erase.
+ */
+export const SandboxPanel = memo(SandboxPanelInner) as typeof SandboxPanelInner;

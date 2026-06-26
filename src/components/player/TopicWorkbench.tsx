@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MotionConfig } from "framer-motion";
 import { createPlayerStore } from "@/engine/store";
 import { usePlayer } from "@/engine/usePlayer";
@@ -13,6 +13,7 @@ import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
 import { ExplainerPanel } from "@/components/player/ExplainerPanel";
 import { useKeyboardShortcuts } from "@/components/player/useKeyboardShortcuts";
+import { useElementDisplayed } from "@/components/player/useElementDisplayed";
 import { KeyboardShortcuts } from "@/components/player/KeyboardShortcuts";
 
 const SANDBOX_HINT =
@@ -42,19 +43,28 @@ export function TopicWorkbench({
   topic: AnyAlgorithmTopic;
   Renderer: TopicRenderer;
 }) {
-  const [store] = useState(() => {
-    const created = createPlayerStore();
-    created
-      .getState()
-      .load(topic.run(topic.curatedInput, { maxSteps: SANDBOX_MAX_STEPS }));
-    return created;
-  });
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [store] = useState(() => createPlayerStore());
+  const displayed = useElementDisplayed(rootRef);
+  const loadedSlugRef = useRef<string | null>(null);
+
   const [input, setInput] = useState<unknown>(topic.curatedInput);
   const [tab, setTab] = useState<Tab>("logic");
   const [capNotice, setCapNotice] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!displayed) return;
+    if (loadedSlugRef.current === topic.slug) return;
+    loadedSlugRef.current = topic.slug;
+    setInput(topic.curatedInput);
+    setCapNotice(null);
+    store
+      .getState()
+      .load(topic.run(topic.curatedInput, { maxSteps: SANDBOX_MAX_STEPS }));
+  }, [displayed, store, topic]);
+
   usePlayer(store);
-  useKeyboardShortcuts(store);
+  useKeyboardShortcuts(store, displayed);
 
   const steps = store((s) => s.steps);
   const index = store((s) => s.index);
@@ -64,23 +74,27 @@ export function TopicWorkbench({
   const current = steps[index];
   const total = steps.length;
 
-  const runInput = (next: unknown) => {
-    const frames = topic.run(next, { maxSteps: SANDBOX_MAX_STEPS });
-    if (frames.length >= SANDBOX_MAX_STEPS) {
-      setCapNotice(
-        `Input too large to visualize. Capped at ${SANDBOX_MAX_STEPS} steps. Try a smaller graph.`
-      );
-      return;
-    }
-    setCapNotice(null);
-    setInput(next);
-    store.getState().load(frames);
-  };
+  const runInput = useCallback(
+    (next: unknown) => {
+      const frames = topic.run(next, { maxSteps: SANDBOX_MAX_STEPS });
+      if (frames.length >= SANDBOX_MAX_STEPS) {
+        setCapNotice(
+          `Input too large to visualize. Capped at ${SANDBOX_MAX_STEPS} steps. Try a smaller graph.`
+        );
+        return;
+      }
+      setCapNotice(null);
+      setInput(next);
+      store.getState().load(frames);
+    },
+    [topic, store]
+  );
 
   return (
     <MotionConfig reducedMotion="user">
       <div
         id="visualization"
+        ref={rootRef}
         tabIndex={-1}
         data-testid={`${topic.slug}-workbench`}
         className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row"

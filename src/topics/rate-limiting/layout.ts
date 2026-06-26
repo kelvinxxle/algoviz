@@ -1,3 +1,4 @@
+import { minOf, maxOf } from "@/lib/minmax";
 import type { RateLimitInput } from "./types";
 
 /** SVG coordinate space the renderer draws into. */
@@ -44,8 +45,8 @@ function round(value: number): number {
  */
 export function layoutRateLimit(input: RateLimitInput): RateLayout {
   const times = input.requests.map((r) => r.t);
-  const minT = times.length > 0 ? Math.min(...times) : 0;
-  const maxT = times.length > 0 ? Math.max(...times) : 0;
+  const minT = times.length > 0 ? minOf(times) : 0;
+  const maxT = times.length > 0 ? maxOf(times) : 0;
   const span = maxT - minT;
   const trackWidth = TRACK.right - TRACK.left;
 
