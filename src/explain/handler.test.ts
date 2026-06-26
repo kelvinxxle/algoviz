@@ -100,20 +100,14 @@ describe("handleExplain", () => {
 
   it("returns 400 when topicId is missing or blank", async () => {
     for (const topicId of [undefined, "", "   "]) {
-      const result = await handleExplain(
-        { ...VALID_BODY, topicId },
-        deps()
-      );
+      const result = await handleExplain({ ...VALID_BODY, topicId }, deps());
       expect(result.status).toBe(400);
     }
   });
 
   it("returns 400 when question is missing or blank", async () => {
     for (const question of [undefined, "", "   "]) {
-      const result = await handleExplain(
-        { ...VALID_BODY, question },
-        deps()
-      );
+      const result = await handleExplain({ ...VALID_BODY, question }, deps());
       expect(result.status).toBe(400);
     }
   });

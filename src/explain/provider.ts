@@ -1,8 +1,7 @@
 import type { ExplainConfig } from "./config";
 import type { AssembledPrompt, LlmProvider } from "./types";
 
-const GEMINI_BASE =
-  "https://generativelanguage.googleapis.com/v1beta/models";
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /**
  * Typed error thrown by every provider failure path (network, HTTP, parse, or

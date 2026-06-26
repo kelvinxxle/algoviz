@@ -100,8 +100,7 @@ export function ExplainerPanel({
     }
   }
 
-  const showIdleHint =
-    entries.length === 0 && feedback === "none" && !loading;
+  const showIdleHint = entries.length === 0 && feedback === "none" && !loading;
 
   return (
     <section data-testid="explainer-panel" className="space-y-sm">
@@ -109,10 +108,7 @@ export function ExplainerPanel({
         AI EXPLAINER
       </h3>
 
-      <div
-        aria-live="polite"
-        className="max-h-72 space-y-sm overflow-y-auto"
-      >
+      <div aria-live="polite" className="max-h-72 space-y-sm overflow-y-auto">
         {showIdleHint ? (
           <div className="border border-outline-variant bg-surface-container-lowest p-sm font-code-md text-[11px] leading-relaxed text-on-surface-variant opacity-80">
             <p>Ask about this step or this algorithm.</p>

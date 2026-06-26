@@ -38,7 +38,9 @@ afterEach(() => {
 
 describe("ExplainerPanel", () => {
   beforeEach(() => {
-    setFetch(async () => okResponse("Because a heap pops the min in log time."));
+    setFetch(async () =>
+      okResponse("Because a heap pops the min in log time.")
+    );
   });
 
   it("shows an honest idle hint before any question", () => {
@@ -173,9 +175,7 @@ describe("ExplainerPanel", () => {
     const { container } = render(
       <ExplainerPanel topicId="dijkstra" step={STEP} />
     );
-    expect(
-      container.querySelector('[aria-live="polite"]')
-    ).toBeInTheDocument();
+    expect(container.querySelector('[aria-live="polite"]')).toBeInTheDocument();
   });
 
   it("clears the transcript when the topic changes", async () => {

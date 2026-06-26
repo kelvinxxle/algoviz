@@ -2,11 +2,7 @@ import type { Topic } from "@/data/topics";
 import type { ExplainConfig } from "./config";
 import { isConfigured } from "./config";
 import { assemblePrompt, MAX_QUESTION } from "./prompt";
-import type {
-  ExplainResult,
-  ExplainStepContext,
-  LlmProvider,
-} from "./types";
+import type { ExplainResult, ExplainStepContext, LlmProvider } from "./types";
 
 /**
  * Dependencies injected into the orchestration core. The route handler wires the

@@ -1,11 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ExplainConfig } from "./config";
 import type { AssembledPrompt } from "./types";
-import {
-  ProviderError,
-  createGeminiProvider,
-  getProvider,
-} from "./provider";
+import { ProviderError, createGeminiProvider, getProvider } from "./provider";
 
 const CONFIG: ExplainConfig = {
   provider: "gemini",
@@ -78,18 +74,18 @@ describe("createGeminiProvider", () => {
 describe("createGeminiProvider failures never return a string", () => {
   it("throws a ProviderError on a non-ok HTTP status", async () => {
     mockFetch(async () => jsonResponse({}, { ok: false, status: 500 }));
-    await expect(createGeminiProvider(CONFIG).ask(PROMPT)).rejects.toBeInstanceOf(
-      ProviderError
-    );
+    await expect(
+      createGeminiProvider(CONFIG).ask(PROMPT)
+    ).rejects.toBeInstanceOf(ProviderError);
   });
 
   it("throws a ProviderError on a network failure", async () => {
     mockFetch(async () => {
       throw new Error("ECONNRESET");
     });
-    await expect(createGeminiProvider(CONFIG).ask(PROMPT)).rejects.toBeInstanceOf(
-      ProviderError
-    );
+    await expect(
+      createGeminiProvider(CONFIG).ask(PROMPT)
+    ).rejects.toBeInstanceOf(ProviderError);
   });
 
   it("throws a ProviderError when the body cannot be parsed", async () => {
@@ -103,16 +99,16 @@ describe("createGeminiProvider failures never return a string", () => {
           },
         }) as unknown as Response
     );
-    await expect(createGeminiProvider(CONFIG).ask(PROMPT)).rejects.toBeInstanceOf(
-      ProviderError
-    );
+    await expect(
+      createGeminiProvider(CONFIG).ask(PROMPT)
+    ).rejects.toBeInstanceOf(ProviderError);
   });
 
   it("throws a ProviderError when the response has no answer text", async () => {
     mockFetch(async () => jsonResponse({ candidates: [] }));
-    await expect(createGeminiProvider(CONFIG).ask(PROMPT)).rejects.toBeInstanceOf(
-      ProviderError
-    );
+    await expect(
+      createGeminiProvider(CONFIG).ask(PROMPT)
+    ).rejects.toBeInstanceOf(ProviderError);
   });
 });
 
