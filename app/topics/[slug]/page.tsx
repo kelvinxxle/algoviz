@@ -1,15 +1,30 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Sidebar } from "@/components/Sidebar";
 import { MobileTopBar } from "@/components/MobileTopBar";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TopicStage } from "@/components/player/TopicStage";
 import { getAvailableTopic, topics } from "@/data/topics";
+import { topicMetadata } from "@/lib/metadata";
 
 export function generateStaticParams() {
   return topics
     .filter((topic) => topic.status === "available")
     .map((topic) => ({ slug: topic.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const topic = getAvailableTopic(slug);
+  if (!topic) {
+    return { title: "Topic not found" };
+  }
+  return topicMetadata(topic);
 }
 
 export default async function TopicPage({

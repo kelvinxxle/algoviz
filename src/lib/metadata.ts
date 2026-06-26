@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Topic } from "@/data/topics";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, getSiteUrl } from "./site";
 
 const DEFAULT_TITLE = `${SITE_NAME}: ${SITE_TAGLINE}`;
@@ -24,6 +25,27 @@ export function rootMetadata(): Metadata {
       card: "summary_large_image",
       title: DEFAULT_TITLE,
       description: SITE_DESCRIPTION,
+    },
+  };
+}
+
+/** Per topic metadata; the root title template appends the brand suffix. */
+export function topicMetadata(topic: Topic): Metadata {
+  const social = `${topic.title} | ${SITE_NAME}`;
+  return {
+    title: topic.title,
+    description: topic.blurb,
+    openGraph: {
+      type: "article",
+      siteName: SITE_NAME,
+      title: social,
+      description: topic.blurb,
+      url: `/topics/${topic.slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: social,
+      description: topic.blurb,
     },
   };
 }

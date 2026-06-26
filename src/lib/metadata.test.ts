@@ -27,3 +27,23 @@ describe("rootMetadata", () => {
     );
   });
 });
+
+import { topicMetadata } from "./metadata";
+import { getTopicBySlug } from "@/data/topics";
+
+describe("topicMetadata", () => {
+  it("uses the topic title and blurb so each page differs", () => {
+    const dijkstra = getTopicBySlug("dijkstra")!;
+    const meta = topicMetadata(dijkstra);
+    expect(meta.title).toBe(dijkstra.title);
+    expect(meta.description).toBe(dijkstra.blurb);
+    const og = meta.openGraph as { url?: string };
+    expect(og?.url).toBe("/topics/dijkstra");
+  });
+
+  it("gives two different topics two different titles", () => {
+    const a = topicMetadata(getTopicBySlug("dijkstra")!);
+    const b = topicMetadata(getTopicBySlug("b-trees")!);
+    expect(a.title).not.toBe(b.title);
+  });
+});

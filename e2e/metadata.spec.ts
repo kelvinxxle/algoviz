@@ -20,4 +20,12 @@ test.describe("Site metadata", () => {
       .getAttribute("content");
     expect(themeColor).toBe("#131313");
   });
+
+  test("a topic page has its own title distinct from the home title", async ({
+    page,
+  }) => {
+    await page.goto("/topics/dijkstra");
+    await expect(page).toHaveTitle(/Dijkstra/);
+    await expect(page).toHaveTitle(/AlgoViz/);
+  });
 });
