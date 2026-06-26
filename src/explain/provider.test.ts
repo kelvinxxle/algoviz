@@ -5,7 +5,7 @@ import { ProviderError, createGeminiProvider, getProvider } from "./provider";
 
 const CONFIG: ExplainConfig = {
   provider: "gemini",
-  model: "gemini-2.0-flash",
+  model: "gemini-2.5-flash",
   apiKey: "test-key",
 };
 
@@ -54,7 +54,7 @@ describe("createGeminiProvider", () => {
 
     const [url, init] = fetchMock().mock.calls[0];
     expect(url).toContain(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
     );
     expect(init.method).toBe("POST");
     expect(init.headers["x-goog-api-key"]).toBe("test-key");

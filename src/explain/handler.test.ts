@@ -8,7 +8,7 @@ import { handleExplain, type HandlerDeps } from "./handler";
 
 const CONFIGURED: ExplainConfig = {
   provider: "gemini",
-  model: "gemini-2.0-flash",
+  model: "gemini-2.5-flash",
   apiKey: "test-key",
 };
 const NOT_CONFIGURED: ExplainConfig = { ...CONFIGURED, apiKey: null };

@@ -22,7 +22,7 @@ Variables (see `.env.example` for the full list):
 | --- | --- | --- |
 | `GEMINI_API_KEY` | To enable the explainer | Server side Google Gemini key. Unset or blank keeps the explainer in the honest 503 state. |
 | `EXPLAIN_PROVIDER` | No | Provider implementation. Default `gemini`. |
-| `EXPLAIN_MODEL` | No | Model id. Default `gemini-2.0-flash`. |
+| `EXPLAIN_MODEL` | No | Model id. Default `gemini-2.5-flash`. |
 | `NEXT_PUBLIC_SITE_URL` | No | Pins canonical, sitemap, robots, and social URLs to your domain. Defaults to the Vercel production URL. |
 
 `GEMINI_API_KEY` is read only on the server in `/api/explain`; it is never
