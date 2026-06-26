@@ -2,6 +2,7 @@
 
 import { getTopicModule } from "@/engine/registry";
 import { TopicWorkbench } from "@/components/player/TopicWorkbench";
+import { SmallScreenNotice } from "@/components/player/SmallScreenNotice";
 
 /**
  * Client seam that resolves a slug to its registered topic module and renders
@@ -23,6 +24,16 @@ export function TopicStage({ slug }: { slug: string }) {
   }
 
   return (
-    <TopicWorkbench topic={topicModule.topic} Renderer={topicModule.Renderer} />
+    <>
+      <div className="flex flex-1 md:hidden">
+        <SmallScreenNotice />
+      </div>
+      <div className="hidden min-h-0 flex-1 md:flex">
+        <TopicWorkbench
+          topic={topicModule.topic}
+          Renderer={topicModule.Renderer}
+        />
+      </div>
+    </>
   );
 }

@@ -76,9 +76,9 @@ export function TopicWorkbench({
   return (
     <div
       data-testid={`${topic.slug}-workbench`}
-      className="flex min-h-0 flex-1 overflow-hidden"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row"
     >
-      <section className="relative flex min-w-0 flex-1 flex-col bg-base">
+      <section className="relative flex min-w-0 flex-1 flex-col bg-base max-lg:max-h-[60vh] max-lg:shrink-0">
         <div className="relative flex flex-1 items-center justify-center overflow-hidden p-xl">
           {current ? (
             <Renderer
@@ -106,7 +106,7 @@ export function TopicWorkbench({
         />
       </section>
 
-      <aside className="flex w-96 shrink-0 flex-col overflow-y-auto border-l border-outline-variant bg-surface">
+      <aside className="flex w-full shrink-0 flex-col overflow-y-auto border-t border-outline-variant bg-surface lg:w-96 lg:border-l lg:border-t-0">
         <div className="space-y-md p-md">
           <NarrationPanel
             narration={current?.narration ?? "Loading walkthrough."}

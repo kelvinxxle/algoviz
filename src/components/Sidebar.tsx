@@ -3,36 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { APP_VERSION } from "@/data/meta";
-
-const SECTIONS = [
-  {
-    label: "Reference",
-    links: [
-      {
-        icon: "description",
-        text: "Product Brief",
-        href: "https://github.com/kelvinxxle/algoviz/blob/main/docs/prd.md",
-      },
-      {
-        icon: "palette",
-        text: "Design System",
-        href: "https://github.com/kelvinxxle/algoviz/tree/main/docs/design",
-      },
-      {
-        icon: "code",
-        text: "Source",
-        href: "https://github.com/kelvinxxle/algoviz",
-      },
-    ],
-  },
-];
+import { NAV_SECTIONS } from "@/data/nav";
 
 export function Sidebar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col overflow-y-auto border-r border-outline-variant bg-surface-dim py-md">
+    <aside className="hidden w-64 shrink-0 flex-col overflow-y-auto border-r border-outline-variant bg-surface-dim py-md lg:flex">
       <div className="mb-xl px-md">
         <span className="font-headline-lg text-headline-lg font-bold tracking-tighter text-primary">
           AlgoViz
@@ -61,7 +39,7 @@ export function Sidebar() {
           <span>DASHBOARD</span>
         </Link>
 
-        {SECTIONS.map((section) => (
+        {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
             <div className="px-md pb-xs pt-md">
               <span className="font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant opacity-50">
@@ -70,10 +48,10 @@ export function Sidebar() {
             </div>
             {section.links.map((link) => (
               <a
-                key={link.text}
+                key={link.href}
                 href={link.href}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex w-full items-center gap-md px-md py-sm text-left font-body-md text-body-md text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
               >
                 <span
