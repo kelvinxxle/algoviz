@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { rootMetadata } from "./metadata";
+import { rootMetadata, topicMetadata } from "./metadata";
+import { getTopicBySlug } from "@/data/topics";
 
 describe("rootMetadata", () => {
   it("sets an absolute metadataBase", () => {
@@ -27,9 +28,6 @@ describe("rootMetadata", () => {
     );
   });
 });
-
-import { topicMetadata } from "./metadata";
-import { getTopicBySlug } from "@/data/topics";
 
 describe("topicMetadata", () => {
   it("uses the topic title and blurb so each page differs", () => {
