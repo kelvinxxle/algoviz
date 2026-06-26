@@ -35,13 +35,13 @@ test.describe("Material Symbols icon font renders offline", () => {
     await expect(playIcon).toBeVisible();
     await expect(playIcon).toHaveText("play_arrow");
 
-    // A real glyph at this font size is roughly 24 to 28px wide. The literal
-    // "play_arrow" ligature text is well over 100px, so a small box proves the
-    // self-hosted font loaded and the ligature collapsed into one glyph. Poll
-    // instead of sampling once: with font-display block a slow CI font load can
-    // briefly show the wide fallback (FOIT) before the glyph paints. This stays
-    // a true regression guard, since if the self-hosted font never loads the
-    // width stays around 127px and the poll fails on timeout.
+    // A real glyph at this size is roughly 24 to 28px wide; the literal
+    // "play_arrow" ligature text is well over 100px. Poll instead of sampling
+    // once: with font-display: block the text is invisible during the block
+    // period and a slow CI load can paint the wide fallback before the glyph
+    // settles, so a single sample is racy. This stays a true regression guard:
+    // if the self-hosted font never loads, the width stays around 127px and the
+    // poll fails on timeout.
     await expect
       .poll(async () => (await playIcon.boundingBox())?.width ?? Infinity, {
         timeout: 5000,
