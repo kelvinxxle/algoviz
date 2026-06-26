@@ -19,16 +19,16 @@ function findFreePort(): number {
   return Number.parseInt(out.trim(), 10);
 }
 
-// Parse a string into a valid TCP port (an integer in [1, 65535]) or return
-// null when it is missing, non-numeric, or out of range. This keeps the local
-// dev server from being pointed at an impossible address like
-// http://localhost:0 when PORT is set to a bad value.
+// Parse a string into a valid TCP port: a base-10 unsigned integer in
+// [1, 65535]. Returns null for anything else, including an empty string, a
+// sign, surrounding whitespace, a decimal, hex, or trailing junk like
+// "3000abc" (Number.parseInt alone would accept that numeric prefix). The
+// strict /^\d+$/ test requires the whole string to be digits before the range
+// check, so PORT is honored only when it is exactly a plain port number.
 function parsePort(value: string | undefined): number | null {
-  if (value === undefined) return null;
+  if (value === undefined || !/^\d+$/.test(value)) return null;
   const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535
-    ? parsed
-    : null;
+  return parsed >= 1 && parsed <= 65535 ? parsed : null;
 }
 
 // Single source of truth for the dev server port. CI keeps the fixed 3000 it
