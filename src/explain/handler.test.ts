@@ -153,4 +153,50 @@ describe("handleExplain", () => {
     );
     expect(result.status).toBe(400);
   });
+
+  it("returns 400 for non-finite, negative, or out-of-range step numbers", async () => {
+    const badSteps = [
+      { index: -1, total: 5, narration: "n" },
+      { index: 0, total: 0, narration: "n" },
+      { index: Number.NaN, total: 5, narration: "n" },
+      { index: 2, total: Number.POSITIVE_INFINITY, narration: "n" },
+      { index: 5, total: 5, narration: "n" },
+      { index: 6, total: 5, narration: "n" },
+    ];
+    for (const step of badSteps) {
+      const result = await handleExplain({ ...VALID_BODY, step }, deps());
+      expect(result.status).toBe(400);
+      expect(result.body).toEqual({ error: "invalid_request" });
+    }
+  });
+
+  it("accepts the last step as a valid boundary", async () => {
+    const result = await handleExplain(
+      {
+        ...VALID_BODY,
+        step: { index: 4, total: 5, narration: "Final relaxation." },
+      },
+      deps()
+    );
+    expect(result.status).toBe(200);
+  });
+
+  it("drops a non-finite or negative activeLine instead of forwarding it", async () => {
+    const provider = fakeProvider("ok");
+    const result = await handleExplain(
+      {
+        ...VALID_BODY,
+        step: {
+          index: 0,
+          total: 3,
+          narration: "Start.",
+          activeLine: -2,
+        },
+      },
+      deps({ getProvider: () => provider })
+    );
+    expect(result.status).toBe(200);
+    const prompt = (provider.ask as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(prompt.system).toContain("Active pseudocode line: none");
+  });
 });

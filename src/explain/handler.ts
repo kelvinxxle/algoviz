@@ -30,6 +30,9 @@ function parseStep(value: unknown): ExplainStepContext | null {
   if (typeof value.index !== "number" || typeof value.total !== "number") {
     return null;
   }
+  if (!Number.isFinite(value.index) || value.index < 0) return null;
+  if (!Number.isFinite(value.total) || value.total < 1) return null;
+  if (value.index >= value.total) return null;
   if (typeof value.narration !== "string") return null;
 
   const step: {
@@ -46,7 +49,13 @@ function parseStep(value: unknown): ExplainStepContext | null {
   };
 
   if (typeof value.caption === "string") step.caption = value.caption;
-  if (typeof value.activeLine === "number") step.activeLine = value.activeLine;
+  if (
+    typeof value.activeLine === "number" &&
+    Number.isFinite(value.activeLine) &&
+    value.activeLine >= 0
+  ) {
+    step.activeLine = value.activeLine;
+  }
   if (isObject(value.counters)) {
     const counters: Record<string, number | string> = {};
     for (const [key, entry] of Object.entries(value.counters)) {
