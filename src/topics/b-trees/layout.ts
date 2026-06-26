@@ -1,3 +1,4 @@
+import { maxOf } from "@/lib/minmax";
 import type { BTreeState } from "./types";
 
 /**
@@ -64,10 +65,8 @@ export function layoutTree(state: BTreeState): PositionedBTree {
 
   place(state.rootId, 0);
 
-  const maxX = Math.max(
-    ...positioned.map((n) => n.x + nodeWidth(n.keys.length) / 2)
-  );
-  const maxY = Math.max(...positioned.map((n) => n.y + NODE_HEIGHT / 2));
+  const maxX = maxOf(positioned.map((n) => n.x + nodeWidth(n.keys.length) / 2));
+  const maxY = maxOf(positioned.map((n) => n.y + NODE_HEIGHT / 2));
 
   return {
     nodes: positioned,
