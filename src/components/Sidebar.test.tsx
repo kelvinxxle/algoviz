@@ -44,4 +44,11 @@ describe("Sidebar primary navigation", () => {
     expect(source).toHaveAttribute("target", "_blank");
     expect(source).toHaveAttribute("rel", "noopener noreferrer");
   });
+
+  it("labels the sidebar landmark", () => {
+    render(<Sidebar />);
+    expect(
+      screen.getByRole("complementary", { name: "Primary" })
+    ).toBeInTheDocument();
+  });
 });

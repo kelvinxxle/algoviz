@@ -26,4 +26,11 @@ describe("MobileTopBar", () => {
     expect(source).toHaveAttribute("target", "_blank");
     expect(source).toHaveAttribute("rel", "noopener noreferrer");
   });
+
+  it("labels the reference navigation landmark", () => {
+    render(<MobileTopBar />);
+    expect(
+      screen.getByRole("navigation", { name: "Reference" })
+    ).toBeInTheDocument();
+  });
 });

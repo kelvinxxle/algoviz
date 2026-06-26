@@ -113,7 +113,10 @@ export function TopicWorkbench({
           />
         </section>
 
-        <aside className="flex w-full shrink-0 flex-col overflow-y-auto border-t border-outline-variant bg-surface lg:w-96 lg:border-l lg:border-t-0">
+        <aside
+          aria-label="Walkthrough details"
+          className="flex w-full shrink-0 flex-col overflow-y-auto border-t border-outline-variant bg-surface lg:w-96 lg:border-l lg:border-t-0"
+        >
           <div className="space-y-md p-md">
             <NarrationPanel
               narration={current?.narration ?? "Loading walkthrough."}
