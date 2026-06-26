@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { JetBrains_Mono } from "next/font/google";
+import { rootMetadata } from "@/lib/metadata";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -9,10 +10,10 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "AlgoViz - Topic Library",
-  description:
-    "Make invisible algorithms visible. A curated library of intermediate-to-advanced algorithms you watch happen, then drive with your own input.",
+export const metadata = rootMetadata();
+
+export const viewport: Viewport = {
+  themeColor: "#131313",
 };
 
 export default function RootLayout({
