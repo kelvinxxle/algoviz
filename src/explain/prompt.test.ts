@@ -91,6 +91,19 @@ describe("assemblePrompt", () => {
     expect(system).not.toContain("c24");
   });
 
+  it("truncates over-long counter keys and values", () => {
+    const longKey = "k".repeat(200);
+    const longValue = "v".repeat(200);
+    const { system } = assemblePrompt(TOPIC, "Why a heap?", {
+      ...STEP,
+      counters: { [longKey]: longValue },
+    });
+    expect(system).toContain("k".repeat(64));
+    expect(system).not.toContain("k".repeat(65));
+    expect(system).toContain("v".repeat(128));
+    expect(system).not.toContain("v".repeat(129));
+  });
+
   it("renders gracefully when optional step fields are absent", () => {
     const { system } = assemblePrompt(TOPIC, "Why a heap?", {
       index: 0,

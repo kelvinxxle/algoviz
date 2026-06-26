@@ -6,6 +6,8 @@ export const MAX_QUESTION = 500;
 export const MAX_NARRATION = 2000;
 export const MAX_CAPTION = 500;
 export const MAX_COUNTERS = 24;
+export const MAX_COUNTER_KEY = 64;
+export const MAX_COUNTER_VALUE = 128;
 
 function truncate(value: string, max: number): string {
   return value.length > max ? value.slice(0, max) : value;
@@ -17,7 +19,15 @@ function formatCounters(
   if (!counters) return "none";
   const entries = Object.entries(counters).slice(0, MAX_COUNTERS);
   if (entries.length === 0) return "none";
-  return entries.map(([key, value]) => `${key}=${value}`).join(", ");
+  return entries
+    .map(
+      ([key, value]) =>
+        `${truncate(key, MAX_COUNTER_KEY)}=${truncate(
+          String(value),
+          MAX_COUNTER_VALUE
+        )}`
+    )
+    .join(", ");
 }
 
 /**

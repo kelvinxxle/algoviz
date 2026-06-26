@@ -1,7 +1,7 @@
 import type { Topic } from "@/data/topics";
 import type { ExplainConfig } from "./config";
 import { isConfigured } from "./config";
-import { assemblePrompt, MAX_QUESTION } from "./prompt";
+import { assemblePrompt, MAX_COUNTERS, MAX_QUESTION } from "./prompt";
 import type { ExplainResult, ExplainStepContext, LlmProvider } from "./types";
 
 /**
@@ -58,7 +58,10 @@ function parseStep(value: unknown): ExplainStepContext | null {
   }
   if (isObject(value.counters)) {
     const counters: Record<string, number | string> = {};
-    for (const [key, entry] of Object.entries(value.counters)) {
+    for (const [key, entry] of Object.entries(value.counters).slice(
+      0,
+      MAX_COUNTERS
+    )) {
       if (typeof entry === "number" || typeof entry === "string") {
         counters[key] = entry;
       }
