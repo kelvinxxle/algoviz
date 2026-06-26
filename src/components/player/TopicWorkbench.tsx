@@ -10,6 +10,7 @@ import { NarrationPanel } from "@/components/player/NarrationPanel";
 import { PlayerControls } from "@/components/player/PlayerControls";
 import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
+import { ExplainerPanel } from "@/components/player/ExplainerPanel";
 
 const SANDBOX_HINT =
   "Edit the input and run it through the same engine that drives the walkthrough.";
@@ -161,13 +162,22 @@ export function TopicWorkbench({
           </div>
 
           <div className="border-t border-outline-variant pt-md">
-            <h3 className="font-label-caps text-[10px] uppercase tracking-widest text-on-surface-variant">
-              AI EXPLAINER
-            </h3>
-            <p className="mt-sm border border-outline-variant bg-surface-container-lowest p-sm font-code-md text-[11px] leading-relaxed text-on-surface-variant opacity-70">
-              The step-aware AI explainer arrives in a later milestone. For now,
-              follow the narration and pseudocode above.
-            </p>
+            <ExplainerPanel
+              key={topic.slug}
+              topicId={topic.slug}
+              step={
+                current
+                  ? {
+                      index,
+                      total,
+                      narration: current.narration,
+                      caption: current.caption,
+                      activeLine: current.line,
+                      counters: current.counters,
+                    }
+                  : null
+              }
+            />
           </div>
         </div>
       </aside>
