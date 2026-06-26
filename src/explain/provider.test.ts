@@ -66,6 +66,14 @@ describe("createGeminiProvider", () => {
     expect(sent.generationConfig.maxOutputTokens).toBe(800);
   });
 
+  it("passes an abort signal so a hung upstream cannot hang forever", async () => {
+    const provider = createGeminiProvider(CONFIG);
+    await provider.ask(PROMPT);
+
+    const [, init] = fetchMock().mock.calls[0];
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("exposes its provider name", () => {
     expect(createGeminiProvider(CONFIG).name).toBe("gemini");
   });
@@ -82,6 +90,17 @@ describe("createGeminiProvider failures never return a string", () => {
   it("throws a ProviderError on a network failure", async () => {
     mockFetch(async () => {
       throw new Error("ECONNRESET");
+    });
+    await expect(
+      createGeminiProvider(CONFIG).ask(PROMPT)
+    ).rejects.toBeInstanceOf(ProviderError);
+  });
+
+  it("throws a ProviderError when the request times out (abort)", async () => {
+    mockFetch(async () => {
+      const error = new Error("The operation was aborted");
+      error.name = "AbortError";
+      throw error;
     });
     await expect(
       createGeminiProvider(CONFIG).ask(PROMPT)

@@ -3,6 +3,9 @@ import type { AssembledPrompt, LlmProvider } from "./types";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
+/** Upstream request budget; a hung provider aborts instead of hanging forever. */
+const REQUEST_TIMEOUT_MS = 15000;
+
 /**
  * Typed error thrown by every provider failure path (network, HTTP, parse, or
  * a response with no answer text). The handler maps it to `502 provider_error`.
@@ -49,6 +52,7 @@ export function createGeminiProvider(config: ExplainConfig): LlmProvider {
             contents: [{ role: "user", parts: [{ text: prompt.user }] }],
             generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
           }),
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
       } catch (cause) {
         throw new ProviderError("Network error contacting Gemini", { cause });
