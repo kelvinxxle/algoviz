@@ -7,10 +7,12 @@ afterEach(() => {
 });
 
 // jsdom has no layout engine, so HTMLElement.offsetParent is always null. The
-// visibility gate (useElementDisplayed) relies on it, so approximate the browser
-// closely enough for tests: a connected element reports its parent as the offset
-// parent; a detached element reports null. No production code path reads
-// offsetParent, so this only affects the test environment.
+// visibility gate (useElementDisplayed) reads offsetParent, which works in a
+// real browser but never in jsdom. Approximate the browser closely enough for
+// tests: a connected element reports its parent as the offset parent; a
+// detached element reports null. This override only changes offsetParent inside
+// the jsdom/Vitest environment so visibility-gated components are testable;
+// production relies on the real browser offsetParent.
 Object.defineProperty(HTMLElement.prototype, "offsetParent", {
   configurable: true,
   get(this: HTMLElement) {
