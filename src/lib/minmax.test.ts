@@ -19,6 +19,11 @@ describe("minOf / maxOf", () => {
     expect(maxOf([])).toBe(-Infinity);
   });
 
+  it("propagates NaN like Math.min()/Math.max() do", () => {
+    expect(Number.isNaN(minOf([1, NaN, 2]))).toBe(true);
+    expect(Number.isNaN(maxOf([1, NaN, 2]))).toBe(true);
+  });
+
   it("handles a very large list that would overflow the call stack via spread", () => {
     const big = Array.from({ length: 200000 }, (_, i) => i);
     expect(maxOf(big)).toBe(199999);
