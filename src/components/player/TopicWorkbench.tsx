@@ -11,6 +11,7 @@ import { PlayerControls } from "@/components/player/PlayerControls";
 import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
 import { ExplainerPanel } from "@/components/player/ExplainerPanel";
+import { useKeyboardShortcuts } from "@/components/player/useKeyboardShortcuts";
 
 const SANDBOX_HINT =
   "Edit the input and run it through the same engine that drives the walkthrough.";
@@ -51,6 +52,7 @@ export function TopicWorkbench({
   const [capNotice, setCapNotice] = useState<string | null>(null);
 
   usePlayer(store);
+  useKeyboardShortcuts(store);
 
   const steps = store((s) => s.steps);
   const index = store((s) => s.index);
