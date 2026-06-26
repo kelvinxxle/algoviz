@@ -201,4 +201,27 @@ describe("handleExplain", () => {
     expect(await lineFor(2.5)).toContain("Active pseudocode line: none");
     expect(await lineFor(1)).toContain("Active pseudocode line: line 1");
   });
+
+  it("handles dangerous counter keys without polluting Object.prototype", async () => {
+    const provider = fakeProvider("ok");
+    const counters = JSON.parse(
+      '{"__proto__":"safe","constructor":"safe","visited":3}'
+    ) as Record<string, string | number>;
+    const result = await handleExplain(
+      {
+        ...VALID_BODY,
+        step: { index: 0, total: 3, narration: "Start.", counters },
+      },
+      deps({ getProvider: () => provider })
+    );
+    expect(result.status).toBe(200);
+    expect(
+      (Object.prototype as Record<string, unknown>).__proto__ === "safe"
+    ).toBe(false);
+    expect("polluted" in Object.prototype).toBe(false);
+    const system = (provider.ask as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      .system;
+    expect(system).toContain("__proto__=safe");
+    expect(system).toContain("visited=3");
+  });
 });

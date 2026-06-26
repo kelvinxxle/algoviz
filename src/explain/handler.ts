@@ -57,7 +57,7 @@ function parseStep(value: unknown): ExplainStepContext | null {
     step.activeLine = value.activeLine;
   }
   if (isObject(value.counters)) {
-    const counters: Record<string, number | string> = {};
+    const counters: Record<string, number | string> = Object.create(null);
     for (const [key, entry] of Object.entries(value.counters).slice(
       0,
       MAX_COUNTERS
