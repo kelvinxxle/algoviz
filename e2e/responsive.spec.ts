@@ -35,3 +35,24 @@ test.describe("responsive topic page", () => {
     await expect(page.getByText("DASHBOARD")).toBeVisible();
   });
 });
+
+test.describe("responsive home page", () => {
+  test("phone shows the mobile top bar nav, not the sidebar rail", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    // Below lg the Sidebar rail is hidden, so the MobileTopBar must supply the
+    // nav. Its Dashboard link keeps the library reachable at phone width.
+    await expect(page.getByRole("link", { name: /dashboard/i })).toBeVisible();
+    await expect(page.getByText("DASHBOARD")).not.toBeVisible();
+  });
+
+  test("desktop shows the sidebar rail, no mobile top bar", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+    await expect(page.getByText("DASHBOARD")).toBeVisible();
+  });
+});
