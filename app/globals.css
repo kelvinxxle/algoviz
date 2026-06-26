@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-primary-container));
+    outline-offset: 2px;
+  }
+}
+
 :root {
   /* Deep Midnight palette tokens */
   --color-surface: 19 19 19;
