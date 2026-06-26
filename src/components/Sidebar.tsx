@@ -3,29 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { APP_VERSION } from "@/data/meta";
-
-const SECTIONS = [
-  {
-    label: "Reference",
-    links: [
-      {
-        icon: "description",
-        text: "Product Brief",
-        href: "https://github.com/kelvinxxle/algoviz/blob/main/docs/prd.md",
-      },
-      {
-        icon: "palette",
-        text: "Design System",
-        href: "https://github.com/kelvinxxle/algoviz/tree/main/docs/design",
-      },
-      {
-        icon: "code",
-        text: "Source",
-        href: "https://github.com/kelvinxxle/algoviz",
-      },
-    ],
-  },
-];
+import { NAV_SECTIONS } from "@/data/nav";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -61,7 +39,7 @@ export function Sidebar() {
           <span>DASHBOARD</span>
         </Link>
 
-        {SECTIONS.map((section) => (
+        {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
             <div className="px-md pb-xs pt-md">
               <span className="font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant opacity-50">
