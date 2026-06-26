@@ -16,4 +16,10 @@ describe("KeyboardShortcuts", () => {
     expect(screen.getByText(/step forward or back/i)).toBeInTheDocument();
     expect(screen.getByText(/reset/i)).toBeInTheDocument();
   });
+
+  it("names the arrow keys explicitly", () => {
+    render(<KeyboardShortcuts />);
+    expect(screen.getByText("Arrow Right / Left")).toBeInTheDocument();
+    expect(screen.getByText("Shift + Arrow Right / Left")).toBeInTheDocument();
+  });
 });

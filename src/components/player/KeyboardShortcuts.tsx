@@ -27,8 +27,8 @@ export function KeyboardShortcuts(): ReactNode {
       </summary>
       <ul className="mt-sm font-body-md text-body-md">
         <Row keys="Space / K" label="Play or pause" />
-        <Row keys="Right / Left" label="Step forward or back" />
-        <Row keys="Shift + Right / Left" label="Jump five steps" />
+        <Row keys="Arrow Right / Left" label="Step forward or back" />
+        <Row keys="Shift + Arrow Right / Left" label="Jump five steps" />
         <Row keys="Home / End" label="First or last step" />
         <Row keys="R" label="Reset" />
       </ul>
