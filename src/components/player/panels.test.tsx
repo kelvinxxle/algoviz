@@ -143,6 +143,12 @@ describe("SandboxPanel", () => {
       ? { ok: false, error: "bad input on line 1" }
       : { ok: true, value: raw.split(" ") };
 
+  it("is memoized so it does not re-render on every transport tick", () => {
+    expect((SandboxPanel as unknown as { $$typeof: symbol }).$$typeof).toBe(
+      Symbol.for("react.memo")
+    );
+  });
+
   it("runs parsed input on success", async () => {
     const user = userEvent.setup();
     const onRun = vi.fn();

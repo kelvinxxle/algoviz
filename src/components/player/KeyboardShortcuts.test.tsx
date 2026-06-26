@@ -3,6 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 
 describe("KeyboardShortcuts", () => {
+  it("is memoized so it does not re-render on every transport tick", () => {
+    expect(
+      (KeyboardShortcuts as unknown as { $$typeof: symbol }).$$typeof
+    ).toBe(Symbol.for("react.memo"));
+  });
+
   it("exposes a discoverable shortcuts disclosure", () => {
     render(<KeyboardShortcuts />);
     expect(

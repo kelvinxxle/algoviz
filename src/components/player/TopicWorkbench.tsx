@@ -71,18 +71,21 @@ export function TopicWorkbench({
   const current = steps[index];
   const total = steps.length;
 
-  const runInput = (next: unknown) => {
-    const frames = topic.run(next, { maxSteps: SANDBOX_MAX_STEPS });
-    if (frames.length >= SANDBOX_MAX_STEPS) {
-      setCapNotice(
-        `Input too large to visualize. Capped at ${SANDBOX_MAX_STEPS} steps. Try a smaller graph.`
-      );
-      return;
-    }
-    setCapNotice(null);
-    setInput(next);
-    store.getState().load(frames);
-  };
+  const runInput = useCallback(
+    (next: unknown) => {
+      const frames = topic.run(next, { maxSteps: SANDBOX_MAX_STEPS });
+      if (frames.length >= SANDBOX_MAX_STEPS) {
+        setCapNotice(
+          `Input too large to visualize. Capped at ${SANDBOX_MAX_STEPS} steps. Try a smaller graph.`
+        );
+        return;
+      }
+      setCapNotice(null);
+      setInput(next);
+      store.getState().load(frames);
+    },
+    [topic, store]
+  );
 
   return (
     <MotionConfig reducedMotion="user">

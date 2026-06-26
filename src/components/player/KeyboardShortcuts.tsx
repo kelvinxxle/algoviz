@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 /** One row in the shortcuts list: the keys and what they do. */
 function Row({ keys, label }: { keys: string; label: string }): ReactNode {
@@ -15,7 +15,7 @@ function Row({ keys, label }: { keys: string; label: string }): ReactNode {
  * keyboard user can learn and a screen reader can announce them. Pairs with the
  * aria-keyshortcuts attributes on the transport controls.
  */
-export function KeyboardShortcuts(): ReactNode {
+function KeyboardShortcutsInner(): ReactNode {
   return (
     <details
       data-testid="keyboard-shortcuts"
@@ -35,3 +35,9 @@ export function KeyboardShortcuts(): ReactNode {
     </details>
   );
 }
+
+/**
+ * Memoized: this disclosure is static while the player ticks, so it should not
+ * re-render on every transport frame.
+ */
+export const KeyboardShortcuts = memo(KeyboardShortcutsInner);
