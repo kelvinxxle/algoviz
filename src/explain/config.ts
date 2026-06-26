@@ -10,13 +10,13 @@
 export const DEFAULT_PROVIDER = "gemini";
 
 /** The default model when `EXPLAIN_MODEL` is unset. */
-export const DEFAULT_MODEL = "gemini-2.0-flash";
+export const DEFAULT_MODEL = "gemini-2.5-flash";
 
 /** Resolved explainer configuration. */
 export interface ExplainConfig {
   /** Which provider implementation to use (default `gemini`). */
   readonly provider: string;
-  /** Model identifier passed to the provider (default `gemini-2.0-flash`). */
+  /** Model identifier passed to the provider (default `gemini-2.5-flash`). */
   readonly model: string;
   /** Server-side API key, or null when unset / blank (not configured). */
   readonly apiKey: string | null;

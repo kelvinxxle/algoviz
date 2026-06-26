@@ -5,7 +5,7 @@ describe("resolveConfig", () => {
   it("defaults provider and model and reports no key as not configured", () => {
     const config = resolveConfig({});
     expect(config.provider).toBe("gemini");
-    expect(config.model).toBe("gemini-2.0-flash");
+    expect(config.model).toBe("gemini-2.5-flash");
     expect(config.apiKey).toBeNull();
     expect(isConfigured(config)).toBe(false);
   });

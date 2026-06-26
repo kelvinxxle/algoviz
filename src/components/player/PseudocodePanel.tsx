@@ -30,12 +30,16 @@ export function PseudocodePanel({
               data-active={active || undefined}
               className={
                 active
-                  ? "-mx-xs border-l-2 border-secondary bg-secondary/10 px-xs text-secondary"
-                  : "px-xs text-on-surface-variant opacity-50"
+                  ? "flex -mx-xs border-l-2 border-secondary bg-secondary/10 px-xs text-secondary"
+                  : "flex px-xs text-on-surface-variant opacity-50"
               }
             >
-              <span className="mr-sm select-none opacity-50">{lineNo}</span>
-              <span className="whitespace-pre">{line}</span>
+              <span className="mr-sm shrink-0 select-none opacity-50">
+                {lineNo}
+              </span>
+              <span className="min-w-0 flex-1 whitespace-pre-wrap break-words">
+                {line}
+              </span>
             </div>
           );
         })}
