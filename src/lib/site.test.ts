@@ -1,15 +1,28 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SITE_NAME, SITE_TAGLINE, getSiteUrl, getSitemapPaths } from "./site";
 import { topics } from "@/data/topics";
 
 const ENV_KEYS = ["NEXT_PUBLIC_SITE_URL", "VERCEL_PROJECT_PRODUCTION_URL"];
+
+const savedEnv: Record<string, string | undefined> = {};
 
 function clearEnv() {
   for (const key of ENV_KEYS) delete process.env[key];
 }
 
 describe("site config", () => {
-  afterEach(clearEnv);
+  beforeEach(() => {
+    for (const key of ENV_KEYS) savedEnv[key] = process.env[key];
+    clearEnv();
+  });
+
+  afterEach(() => {
+    for (const key of ENV_KEYS) {
+      const original = savedEnv[key];
+      if (original === undefined) delete process.env[key];
+      else process.env[key] = original;
+    }
+  });
 
   it("exposes the brand name and tagline", () => {
     expect(SITE_NAME).toBe("AlgoViz");
