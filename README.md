@@ -4,17 +4,18 @@ Make invisible algorithms visible. AlgoViz is a small, curated library where eac
 intermediate-to-advanced algorithm is something you watch happen, then make your own by
 feeding it your own input.
 
-This repository currently delivers **M0: Foundation and app shell**, the project
-scaffold and the flat, browsable topic-library landing. Topic visualizations and the AI
-explainer arrive in later milestones.
+AlgoViz ships ten interactive algorithm explainers: a guided walkthrough, a
+custom input sandbox, and a scoped AI explainer per topic. The app is
+responsive (tablet and up for the workbench), accessible (keyboard operable
+player, focus rings, reduced motion), and deploy ready for Vercel.
 
 ## Status
 
-| Area                  | State                                        |
-| --------------------- | -------------------------------------------- |
-| Topic library landing | Done (10 topics, 1 available, 9 coming soon) |
-| Topic visualizations  | Coming soon                                  |
-| AI explainer          | Coming soon                                  |
+| Area                  | State                                   |
+| --------------------- | --------------------------------------- |
+| Topic library landing | Done (10 topics, all available)         |
+| Topic visualizations  | Done (guided walkthrough plus sandbox)  |
+| AI explainer          | Done (scoped, honest 503 without a key) |
 
 There are no accounts, no progress tracking, and no persistence by design (see the PRD
 non-goals).
@@ -57,8 +58,16 @@ The "Deep Midnight" palette (true-black surfaces, cyan primary, mint secondary),
 border radius, and 1px borders are defined in [`docs/design/`](docs/design/) and wired
 into `tailwind.config.ts` and `app/globals.css`.
 
+## Deploy
+
+AlgoViz deploys to Vercel with zero config. See [`docs/deploy.md`](docs/deploy.md)
+for the import, environment variable, and verification steps. The AI explainer
+needs a `GEMINI_API_KEY`; without one the app still builds and runs and the
+explainer shows an honest "not configured" notice.
+
 ## References
 
 - [Product brief](docs/prd.md)
 - [Tech stack](docs/tech-stack.md)
 - [Design references](docs/design/)
+- [Deploy guide](docs/deploy.md)
