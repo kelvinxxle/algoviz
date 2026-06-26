@@ -86,6 +86,7 @@ export function TopicWorkbench({
       setCapNotice(null);
       setInput(next);
       store.getState().load(frames);
+      store.getState().play();
     },
     [topic, store]
   );
