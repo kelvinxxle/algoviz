@@ -32,14 +32,20 @@ function parsePort(value: string | undefined): number | null {
 }
 
 // Single source of truth for the dev server port. CI keeps the fixed 3000 it
-// has always used. Local runs honor an explicit PORT or otherwise pick a free
-// port, so a stale or foreign server on 3000 is never reused as if it were ours.
+// has always used and ignores every PORT or cache value. Local runs honor an
+// explicit PORT or otherwise pick a free port, so a stale or foreign server on
+// 3000 is never reused as if it were ours.
 //
-// Playwright re-evaluates this config in every worker process, so the chosen
-// port is cached in the environment: the main process resolves it once and boots
-// one webServer, and the workers inherit the same value instead of each picking
-// its own (unused) port and hitting a connection-refused.
+// Locally the port is non-deterministic, so the first (main) process resolves it
+// once and caches it in the environment; the worker processes that re-evaluate
+// this config then inherit the same value instead of each picking its own
+// (unused) port and hitting a connection-refused. CI needs no cache because 3000
+// is deterministic in every process.
 function resolvePort(): number {
+  // CI is authoritative and unconditional: always 3000, regardless of any
+  // preset PLAYWRIGHT_E2E_PORT or PORT.
+  if (isCI) return 3000;
+
   const cached = process.env.PLAYWRIGHT_E2E_PORT;
   if (cached) {
     const cachedPort = parsePort(cached);
@@ -52,10 +58,10 @@ function resolvePort(): number {
     return cachedPort;
   }
 
-  // CI always uses 3000 and ignores PORT. Locally an explicit PORT is honored
-  // only when it is a valid in-range port; anything else (0, negative, out of
-  // range, or non-numeric) falls back to an auto-selected free port.
-  const explicit = isCI ? 3000 : parsePort(process.env.PORT);
+  // An explicit PORT is honored only when it is a valid in-range port; anything
+  // else (0, negative, out of range, or non-numeric) falls back to an
+  // auto-selected free port.
+  const explicit = parsePort(process.env.PORT);
   const chosen = explicit ?? findFreePort();
   process.env.PLAYWRIGHT_E2E_PORT = String(chosen);
   return chosen;
