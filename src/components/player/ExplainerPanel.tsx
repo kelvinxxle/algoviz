@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ExplainStepContext } from "@/explain/types";
 
 type Feedback = "none" | "provider" | "not_configured" | "invalid";
@@ -34,6 +34,14 @@ export function ExplainerPanel({
   const [activeTopic, setActiveTopic] = useState(topicId);
   const nextId = useRef(0);
 
+  // The topic the panel is currently bound to, synced after each render. An
+  // in-flight request reads this at resolution to discard a stale answer whose
+  // topic changed while it was in flight.
+  const currentTopic = useRef(topicId);
+  useEffect(() => {
+    currentTopic.current = topicId;
+  }, [topicId]);
+
   // Reset the session transcript when the topic changes. Adjusting state during
   // render (React's recommended pattern) keeps the reset synchronous without an
   // effect, so a stale answer never flashes under the new topic.
@@ -42,6 +50,7 @@ export function ExplainerPanel({
     setEntries([]);
     setFeedback("none");
     setQuestion("");
+    setLoading(false);
   }
 
   const trimmed = question.trim();
@@ -54,6 +63,7 @@ export function ExplainerPanel({
     setLoading(true);
     setFeedback("none");
     const askedStep = step;
+    const askedTopic = topicId;
 
     try {
       const res = await fetch("/api/explain", {
@@ -73,8 +83,13 @@ export function ExplainerPanel({
         }),
       });
 
+      // The topic changed while this request was in flight: discard the result
+      // so a stale answer never appends under the new topic.
+      if (askedTopic !== currentTopic.current) return;
+
       if (res.ok) {
         const data = (await res.json()) as { answer: string };
+        if (askedTopic !== currentTopic.current) return;
         setEntries((prev) => [
           ...prev,
           {
@@ -94,9 +109,12 @@ export function ExplainerPanel({
         setFeedback("provider");
       }
     } catch {
+      if (askedTopic !== currentTopic.current) return;
       setFeedback("provider");
     } finally {
-      setLoading(false);
+      if (askedTopic === currentTopic.current) {
+        setLoading(false);
+      }
     }
   }
 

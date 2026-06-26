@@ -199,16 +199,36 @@ describe("ExplainerPanel", () => {
     });
   });
 
-  it("stamps each transcript entry with the step it was asked at", async () => {
+  it("discards an in-flight answer when the topic changes before it resolves", async () => {
+    let resolve: (r: Response) => void = () => {};
+    setFetch(
+      () =>
+        new Promise<Response>((r) => {
+          resolve = r;
+        })
+    );
     const user = userEvent.setup();
-    render(<ExplainerPanel topicId="dijkstra" step={STEP} />);
+    const { rerender } = render(
+      <ExplainerPanel topicId="dijkstra" step={STEP} />
+    );
+
     await user.type(
       screen.getByLabelText(/question for the ai explainer/i),
       "Why a heap?"
     );
     await user.click(screen.getByRole("button", { name: /ask/i }));
+    expect(screen.getByText(/thinking/i)).toBeInTheDocument();
 
-    const entry = await screen.findByTestId("explainer-entry");
-    expect(within(entry).getByText(/step 2 \/ 5/i)).toBeInTheDocument();
+    rerender(<ExplainerPanel topicId="tries" step={STEP} />);
+    resolve(okResponse("stale answer from dijkstra"));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/thinking/i)).not.toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(/stale answer from dijkstra/i)
+    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("explainer-entry")).not.toBeInTheDocument();
+    expect(screen.getByText(/ask about this step/i)).toBeInTheDocument();
   });
 });
