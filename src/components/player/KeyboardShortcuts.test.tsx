@@ -1,12 +1,31 @@
 import { describe, expect, it } from "vitest";
+import { useState } from "react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 
 describe("KeyboardShortcuts", () => {
-  it("is memoized so it does not re-render on every transport tick", () => {
-    expect(
-      (KeyboardShortcuts as unknown as { $$typeof: symbol }).$$typeof
-    ).toBe(Symbol.for("react.memo"));
+  it("keeps its disclosure content stable while the parent re-renders on transport ticks", async () => {
+    const user = userEvent.setup();
+    function Parent() {
+      const [tick, setTick] = useState(0);
+      return (
+        <>
+          <button onClick={() => setTick((t) => t + 1)}>tick {tick}</button>
+          <KeyboardShortcuts />
+        </>
+      );
+    }
+
+    render(<Parent />);
+    const before = screen.getByTestId("keyboard-shortcuts");
+    expect(screen.getByText(/play or pause/i)).toBeInTheDocument();
+
+    await user.click(screen.getByText(/tick/));
+    await user.click(screen.getByText(/tick/));
+
+    expect(screen.getByTestId("keyboard-shortcuts")).toBe(before);
+    expect(screen.getByText(/play or pause/i)).toBeInTheDocument();
   });
 
   it("exposes a discoverable shortcuts disclosure", () => {
