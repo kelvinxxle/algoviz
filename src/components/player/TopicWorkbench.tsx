@@ -12,6 +12,7 @@ import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
 import { ExplainerPanel } from "@/components/player/ExplainerPanel";
 import { useKeyboardShortcuts } from "@/components/player/useKeyboardShortcuts";
+import { KeyboardShortcuts } from "@/components/player/KeyboardShortcuts";
 
 const SANDBOX_HINT =
   "Edit the input and run it through the same engine that drives the walkthrough.";
@@ -116,6 +117,8 @@ export function TopicWorkbench({
             index={index}
             total={total}
           />
+
+          <KeyboardShortcuts />
 
           <div className="flex border-b border-outline-variant">
             <TabButton
