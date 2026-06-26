@@ -10,7 +10,7 @@ export function Sidebar() {
   const isHome = pathname === "/";
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col overflow-y-auto border-r border-outline-variant bg-surface-dim py-md">
+    <aside className="hidden w-64 shrink-0 flex-col overflow-y-auto border-r border-outline-variant bg-surface-dim py-md lg:flex">
       <div className="mb-xl px-md">
         <span className="font-headline-lg text-headline-lg font-bold tracking-tighter text-primary">
           AlgoViz
