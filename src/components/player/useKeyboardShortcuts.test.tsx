@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import type { AlgorithmTopic, Step } from "@/engine/contract";
 import { defineTopic, type TopicRenderProps } from "@/engine/registry";
+import { createPlayerStore } from "@/engine/store";
 import { TopicWorkbench } from "./TopicWorkbench";
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
 interface FakeInput {
   readonly start: number;
@@ -128,5 +130,47 @@ describe("useKeyboardShortcuts", () => {
     expect(summary).toHaveFocus();
     await user.keyboard(" ");
     expect(screen.getByRole("button", { name: "Play" })).toBeInTheDocument();
+  });
+
+  it("does nothing when disabled", () => {
+    const store = createPlayerStore();
+    store.getState().load(
+      Array.from({ length: 5 }, (_, i) => ({
+        state: { value: i },
+        narration: `f${i}`,
+        highlights: [],
+        counters: {},
+      }))
+    );
+
+    function Harness() {
+      useKeyboardShortcuts(store, false);
+      return <div data-testid="kb" />;
+    }
+    render(<Harness />);
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(store.getState().index).toBe(0);
+  });
+
+  it("acts when enabled", () => {
+    const store = createPlayerStore();
+    store.getState().load(
+      Array.from({ length: 5 }, (_, i) => ({
+        state: { value: i },
+        narration: `f${i}`,
+        highlights: [],
+        counters: {},
+      }))
+    );
+
+    function Harness() {
+      useKeyboardShortcuts(store, true);
+      return <div data-testid="kb" />;
+    }
+    render(<Harness />);
+
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    expect(store.getState().index).toBe(1);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MotionConfig } from "framer-motion";
 import { createPlayerStore } from "@/engine/store";
 import { usePlayer } from "@/engine/usePlayer";
@@ -13,6 +13,7 @@ import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
 import { ExplainerPanel } from "@/components/player/ExplainerPanel";
 import { useKeyboardShortcuts } from "@/components/player/useKeyboardShortcuts";
+import { useElementDisplayed } from "@/components/player/useElementDisplayed";
 import { KeyboardShortcuts } from "@/components/player/KeyboardShortcuts";
 
 const SANDBOX_HINT =
@@ -42,19 +43,25 @@ export function TopicWorkbench({
   topic: AnyAlgorithmTopic;
   Renderer: TopicRenderer;
 }) {
-  const [store] = useState(() => {
-    const created = createPlayerStore();
-    created
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [store] = useState(() => createPlayerStore());
+  const displayed = useElementDisplayed(rootRef);
+  const loadedRef = useRef(false);
+
+  useEffect(() => {
+    if (!displayed || loadedRef.current) return;
+    loadedRef.current = true;
+    store
       .getState()
       .load(topic.run(topic.curatedInput, { maxSteps: SANDBOX_MAX_STEPS }));
-    return created;
-  });
+  }, [displayed, store, topic]);
+
   const [input, setInput] = useState<unknown>(topic.curatedInput);
   const [tab, setTab] = useState<Tab>("logic");
   const [capNotice, setCapNotice] = useState<string | null>(null);
 
   usePlayer(store);
-  useKeyboardShortcuts(store);
+  useKeyboardShortcuts(store, displayed);
 
   const steps = store((s) => s.steps);
   const index = store((s) => s.index);
@@ -81,6 +88,7 @@ export function TopicWorkbench({
     <MotionConfig reducedMotion="user">
       <div
         id="visualization"
+        ref={rootRef}
         tabIndex={-1}
         data-testid={`${topic.slug}-workbench`}
         className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row"
