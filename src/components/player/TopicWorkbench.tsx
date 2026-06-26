@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MotionConfig } from "framer-motion";
 import { createPlayerStore } from "@/engine/store";
 import { usePlayer } from "@/engine/usePlayer";
 import type { AnyAlgorithmTopic } from "@/engine/contract";
@@ -11,6 +12,8 @@ import { PlayerControls } from "@/components/player/PlayerControls";
 import { PseudocodePanel } from "@/components/player/PseudocodePanel";
 import { SandboxPanel } from "@/components/player/SandboxPanel";
 import { ExplainerPanel } from "@/components/player/ExplainerPanel";
+import { useKeyboardShortcuts } from "@/components/player/useKeyboardShortcuts";
+import { KeyboardShortcuts } from "@/components/player/KeyboardShortcuts";
 
 const SANDBOX_HINT =
   "Edit the input and run it through the same engine that drives the walkthrough.";
@@ -51,6 +54,7 @@ export function TopicWorkbench({
   const [capNotice, setCapNotice] = useState<string | null>(null);
 
   usePlayer(store);
+  useKeyboardShortcuts(store);
 
   const steps = store((s) => s.steps);
   const index = store((s) => s.index);
@@ -74,114 +78,123 @@ export function TopicWorkbench({
   };
 
   return (
-    <div
-      data-testid={`${topic.slug}-workbench`}
-      className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row"
-    >
-      <section className="relative flex min-w-0 flex-1 flex-col bg-base max-lg:max-h-[60vh] max-lg:shrink-0">
-        <div className="relative flex flex-1 items-center justify-center overflow-hidden p-xl">
-          {current ? (
-            <Renderer
-              input={input}
-              state={current.state}
-              highlights={current.highlights}
-            />
-          ) : (
-            <p className="font-code-md text-code-md text-on-surface-variant opacity-70">
-              Loading walkthrough.
-            </p>
-          )}
-        </div>
-        <PlayerControls
-          index={index}
-          total={total}
-          playing={playing}
-          speed={speed}
-          onToggle={() => store.getState().toggle()}
-          onNext={() => store.getState().next()}
-          onPrev={() => store.getState().prev()}
-          onSeek={(i) => store.getState().seek(i)}
-          onReset={() => store.getState().reset()}
-          onSpeed={(s) => store.getState().setSpeed(s)}
-        />
-      </section>
-
-      <aside className="flex w-full shrink-0 flex-col overflow-y-auto border-t border-outline-variant bg-surface lg:w-96 lg:border-l lg:border-t-0">
-        <div className="space-y-md p-md">
-          <NarrationPanel
-            narration={current?.narration ?? "Loading walkthrough."}
-            caption={current?.caption}
+    <MotionConfig reducedMotion="user">
+      <div
+        id="visualization"
+        tabIndex={-1}
+        data-testid={`${topic.slug}-workbench`}
+        className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row"
+      >
+        <section className="relative flex min-w-0 flex-1 flex-col bg-base max-lg:max-h-[60vh] max-lg:shrink-0">
+          <div className="relative flex flex-1 items-center justify-center overflow-hidden p-xl">
+            {current ? (
+              <Renderer
+                input={input}
+                state={current.state}
+                highlights={current.highlights}
+              />
+            ) : (
+              <p className="font-code-md text-code-md text-on-surface-variant opacity-70">
+                Loading walkthrough.
+              </p>
+            )}
+          </div>
+          <PlayerControls
             index={index}
             total={total}
+            playing={playing}
+            speed={speed}
+            onToggle={() => store.getState().toggle()}
+            onNext={() => store.getState().next()}
+            onPrev={() => store.getState().prev()}
+            onSeek={(i) => store.getState().seek(i)}
+            onReset={() => store.getState().reset()}
+            onSpeed={(s) => store.getState().setSpeed(s)}
           />
+        </section>
 
-          <div className="flex border-b border-outline-variant">
-            <TabButton
-              label="LOGIC"
-              icon="code"
-              active={tab === "logic"}
-              onClick={() => setTab("logic")}
+        <aside
+          aria-label="Walkthrough details"
+          className="flex w-full shrink-0 flex-col overflow-y-auto border-t border-outline-variant bg-surface lg:w-96 lg:border-l lg:border-t-0"
+        >
+          <div className="space-y-md p-md">
+            <NarrationPanel
+              narration={current?.narration ?? "Loading walkthrough."}
+              caption={current?.caption}
+              index={index}
+              total={total}
             />
-            <TabButton
-              label="METRICS"
-              icon="monitoring"
-              active={tab === "metrics"}
-              onClick={() => setTab("metrics")}
-            />
+
+            <KeyboardShortcuts />
+
+            <div className="flex border-b border-outline-variant">
+              <TabButton
+                label="LOGIC"
+                icon="code"
+                active={tab === "logic"}
+                onClick={() => setTab("logic")}
+              />
+              <TabButton
+                label="METRICS"
+                icon="monitoring"
+                active={tab === "metrics"}
+                onClick={() => setTab("metrics")}
+              />
+            </div>
+
+            {tab === "logic" ? (
+              <PseudocodePanel
+                lines={topic.pseudocode}
+                activeLine={current?.line}
+              />
+            ) : (
+              <CountersPanel
+                counters={current?.counters ?? {}}
+                defs={topic.counters}
+                complexity={topic.complexity}
+              />
+            )}
+
+            <div className="border-t border-outline-variant pt-md">
+              <SandboxPanel<unknown>
+                defaultValue={topic.serializeInput(topic.curatedInput)}
+                parse={topic.parseInput}
+                onRun={runInput}
+                hint={SANDBOX_HINT}
+              />
+              {capNotice ? (
+                <p
+                  data-testid="sandbox-cap-notice"
+                  role="alert"
+                  className="mt-sm border border-error/40 bg-error/10 px-sm py-xs font-code-md text-[11px] text-error"
+                >
+                  {capNotice}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="border-t border-outline-variant pt-md">
+              <ExplainerPanel
+                key={topic.slug}
+                topicId={topic.slug}
+                step={
+                  current
+                    ? {
+                        index,
+                        total,
+                        narration: current.narration,
+                        caption: current.caption,
+                        activeLine: current.line,
+                        counters: current.counters,
+                      }
+                    : null
+                }
+              />
+            </div>
           </div>
-
-          {tab === "logic" ? (
-            <PseudocodePanel
-              lines={topic.pseudocode}
-              activeLine={current?.line}
-            />
-          ) : (
-            <CountersPanel
-              counters={current?.counters ?? {}}
-              defs={topic.counters}
-              complexity={topic.complexity}
-            />
-          )}
-
-          <div className="border-t border-outline-variant pt-md">
-            <SandboxPanel<unknown>
-              defaultValue={topic.serializeInput(topic.curatedInput)}
-              parse={topic.parseInput}
-              onRun={runInput}
-              hint={SANDBOX_HINT}
-            />
-            {capNotice ? (
-              <p
-                data-testid="sandbox-cap-notice"
-                role="alert"
-                className="mt-sm border border-error/40 bg-error/10 px-sm py-xs font-code-md text-[11px] text-error"
-              >
-                {capNotice}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="border-t border-outline-variant pt-md">
-            <ExplainerPanel
-              key={topic.slug}
-              topicId={topic.slug}
-              step={
-                current
-                  ? {
-                      index,
-                      total,
-                      narration: current.narration,
-                      caption: current.caption,
-                      activeLine: current.line,
-                      counters: current.counters,
-                    }
-                  : null
-              }
-            />
-          </div>
-        </div>
-      </aside>
-    </div>
+        </aside>
+      </div>
+    </MotionConfig>
   );
 }
 

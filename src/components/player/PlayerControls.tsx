@@ -45,6 +45,7 @@ export function PlayerControls({
           type="button"
           onClick={onReset}
           aria-label="Reset"
+          aria-keyshortcuts="R"
           className="flex items-center gap-xs text-on-surface-variant transition-colors hover:text-primary"
         >
           <span aria-hidden="true" className="material-symbols-outlined">
@@ -58,6 +59,7 @@ export function PlayerControls({
           onClick={onPrev}
           disabled={atStart}
           aria-label="Step back"
+          aria-keyshortcuts="ArrowLeft"
           className="text-on-surface-variant transition-colors hover:text-primary disabled:opacity-30"
         >
           <span aria-hidden="true" className="material-symbols-outlined">
@@ -69,6 +71,7 @@ export function PlayerControls({
           onClick={onToggle}
           aria-label={playing ? "Pause" : "Play"}
           aria-pressed={playing}
+          aria-keyshortcuts="Space K"
           className="flex h-10 w-10 items-center justify-center bg-primary-container text-on-primary-container transition-all hover:bg-primary"
         >
           <span
@@ -83,6 +86,7 @@ export function PlayerControls({
           onClick={onNext}
           disabled={atEnd}
           aria-label="Step forward"
+          aria-keyshortcuts="ArrowRight"
           className="text-on-surface-variant transition-colors hover:text-primary disabled:opacity-30"
         >
           <span aria-hidden="true" className="material-symbols-outlined">
@@ -95,6 +99,7 @@ export function PlayerControls({
         <input
           type="range"
           aria-label="Scrub steps"
+          aria-keyshortcuts="Home End"
           min={0}
           max={lastIndex}
           value={index}

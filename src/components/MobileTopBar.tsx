@@ -16,7 +16,7 @@ export function MobileTopBar() {
       >
         AlgoViz
       </Link>
-      <nav className="flex items-center gap-md">
+      <nav aria-label="Reference" className="flex items-center gap-md">
         {NAV_SECTIONS.flatMap((section) =>
           section.links.map((link) => (
             <a
