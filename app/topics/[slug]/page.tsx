@@ -28,7 +28,7 @@ export default async function TopicPage({
     <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
       <a
         href="#visualization"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-surface focus:px-md focus:py-sm focus:font-label-caps focus:text-label-caps focus:uppercase focus:tracking-widest focus:text-primary focus:outline focus:outline-2 focus:outline-primary-container"
+        className="max-md:hidden sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-surface focus:px-md focus:py-sm focus:font-label-caps focus:text-label-caps focus:uppercase focus:tracking-widest focus:text-primary focus:outline focus:outline-2 focus:outline-primary-container"
       >
         Skip to visualization
       </a>

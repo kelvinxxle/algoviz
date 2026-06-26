@@ -28,4 +28,14 @@ test.describe("landmarks and skip-link", () => {
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("img", { name: /dijkstra/i })).toBeVisible();
   });
+
+  test("the skip-link is hidden below md where the workbench is not shown", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.goto("/topics/dijkstra");
+    await expect(
+      page.getByRole("link", { name: /skip to visualization/i })
+    ).toBeHidden();
+  });
 });
