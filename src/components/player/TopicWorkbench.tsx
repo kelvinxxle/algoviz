@@ -163,6 +163,7 @@ export function TopicWorkbench({
 
           <div className="border-t border-outline-variant pt-md">
             <ExplainerPanel
+              key={topic.slug}
               topicId={topic.slug}
               step={
                 current

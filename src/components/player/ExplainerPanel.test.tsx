@@ -178,10 +178,10 @@ describe("ExplainerPanel", () => {
     expect(container.querySelector('[aria-live="polite"]')).toBeInTheDocument();
   });
 
-  it("clears the transcript when the topic changes", async () => {
+  it("clears the transcript when the topic changes (remount)", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
-      <ExplainerPanel topicId="dijkstra" step={STEP} />
+      <ExplainerPanel key="dijkstra" topicId="dijkstra" step={STEP} />
     );
     await user.type(
       screen.getByLabelText(/question for the ai explainer/i),
@@ -190,7 +190,7 @@ describe("ExplainerPanel", () => {
     await user.click(screen.getByRole("button", { name: /ask/i }));
     await screen.findByText(/because a heap pops the min/i);
 
-    rerender(<ExplainerPanel topicId="tries" step={STEP} />);
+    rerender(<ExplainerPanel key="tries" topicId="tries" step={STEP} />);
 
     await waitFor(() => {
       expect(
@@ -209,7 +209,7 @@ describe("ExplainerPanel", () => {
     );
     const user = userEvent.setup();
     const { rerender } = render(
-      <ExplainerPanel topicId="dijkstra" step={STEP} />
+      <ExplainerPanel key="dijkstra" topicId="dijkstra" step={STEP} />
     );
 
     await user.type(
@@ -219,7 +219,9 @@ describe("ExplainerPanel", () => {
     await user.click(screen.getByRole("button", { name: /ask/i }));
     expect(screen.getByText(/thinking/i)).toBeInTheDocument();
 
-    rerender(<ExplainerPanel topicId="tries" step={STEP} />);
+    // Remount under a new topic (as TopicWorkbench does via key={topic.slug}),
+    // then resolve the original fetch: it lands on the unmounted instance.
+    rerender(<ExplainerPanel key="tries" topicId="tries" step={STEP} />);
     resolve(okResponse("stale answer from dijkstra"));
 
     await waitFor(() => {
